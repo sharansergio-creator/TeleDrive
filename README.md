@@ -306,6 +306,23 @@ Ensure preprocessing in Android matches **training-time scaling**.
 
 ---
 
+## Application Screenshots
+
+### Start Screen
+![Start Screen](docs/screenshots/start_screen.jpg)
+
+### Trip Score
+![Trip Score](docs/screenshots/trip_score.jpg)
+
+### Driving Behaviour
+![Driving Analysis](docs/screenshots/driving_analysis.jpg)
+
+### Analytics Dashboard
+![Analytics](docs/screenshots/analytics.jpg)
+
+### Event Evidence Capture
+![Event Evidence](docs/screenshots/event_evidence.jpg)
+
 # Future Improvements
 
 - Driver-specific personalization
