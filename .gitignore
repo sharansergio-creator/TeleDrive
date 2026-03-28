@@ -1,0 +1,91 @@
+# -----------------------------
+# OS and editor temp files
+# -----------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*.tmp
+*.temp
+
+# -----------------------------
+# IDE / Editor
+# -----------------------------
+.idea/
+.vscode/
+*.iml
+
+# -----------------------------
+# Android / Gradle
+# -----------------------------
+**/build/
+**/.gradle/
+android-app/local.properties
+android-app/captures/
+android-app/.externalNativeBuild/
+android-app/.cxx/
+
+# APK / AAB outputs
+*.apk
+*.aab
+*.ap_
+
+# Android signing material
+*.jks
+*.keystore
+*.pem
+*.p12
+
+# -----------------------------
+# Python
+# -----------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Packaging
+dist/
+build/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# -----------------------------
+# ML artifacts and checkpoints
+# -----------------------------
+# Keep large or generated training artifacts out of git.
+ml-pipeline/models/keras/*.h5
+ml-pipeline/models/keras/*.keras
+ml-pipeline/models/tflite/*.tflite
+ml-pipeline/models/checkpoints/
+ml-pipeline/models/**/checkpoint*
+ml-pipeline/models/**/events.out.tfevents*
+
+# Optional local data outputs (keep raw source data if needed)
+ml-pipeline/data/processed/
+
+# -----------------------------
+# Logs
+# -----------------------------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
