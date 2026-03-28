@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.TeleDrive" parent="Theme.AppCompat.Light.NoActionBar"/>
+<!-- This theme prevents the white flash -->
+    <style name="Theme.TeleDrive.Starting" parent="Theme.TeleDrive">
+        <!-- Set the background to your dark color immediately -->
+        <item name="android:windowBackground">@color/premium_dark_bg</item>
+        <!-- Optional: Make the status bar dark to match -->
+        <item name="android:statusBarColor">@color/premium_dark_bg</item>
+    </style>
+    <!-- Existing themes... -->
+
+    <style name="Theme.TeleDrive.Translucent" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
+    </style>
+</resources>

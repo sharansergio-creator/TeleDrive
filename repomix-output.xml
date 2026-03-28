@@ -1,0 +1,2304 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+com/teledrive/app/analysis/AnalyzerProvider.kt
+com/teledrive/app/analysis/DrivingAnalyzer.kt
+com/teledrive/app/analysis/MLAnalyzer.kt
+com/teledrive/app/analysis/RuleBasedAnalyzer.kt
+com/teledrive/app/camera/CameraControllerActivity.kt
+com/teledrive/app/core/EcoScoreEngine.kt
+com/teledrive/app/core/EventDetector.kt
+com/teledrive/app/core/FuelEstimator.kt
+com/teledrive/app/core/LiveDataBus.kt
+com/teledrive/app/core/Models.kt
+com/teledrive/app/core/RideSession.kt
+com/teledrive/app/core/TeleDriveProcessor.kt
+com/teledrive/app/LiveTripActivity.kt
+com/teledrive/app/MainActivity.kt
+com/teledrive/app/ml/DataLogger.kt
+com/teledrive/app/ml/MLModelRunner.kt
+com/teledrive/app/RideSummaryActivity.kt
+com/teledrive/app/services/LocationService.kt
+com/teledrive/app/services/SensorService.kt
+com/teledrive/app/TripHistory/TripStorage.kt
+com/teledrive/app/TripHistory/TripSummary.kt
+com/teledrive/app/ui/theme/Color.kt
+com/teledrive/app/ui/theme/Theme.kt
+com/teledrive/app/ui/theme/Type.kt
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="com/teledrive/app/analysis/AnalyzerProvider.kt">
+package com.teledrive.app.analysis
+
+object AnalyzerProvider {
+
+    var useML = false
+
+    private val ruleAnalyzer by lazy { RuleBasedAnalyzer() }
+    private val mlAnalyzer by lazy { MLAnalyzer() }
+
+    fun getAnalyzer(): DrivingAnalyzer {
+        return if (useML) mlAnalyzer else ruleAnalyzer
+    }
+}
+</file>
+
+<file path="com/teledrive/app/analysis/DrivingAnalyzer.kt">
+package com.teledrive.app.analysis
+
+import com.teledrive.app.core.FeatureVector
+import com.teledrive.app.core.DrivingEvent
+
+interface DrivingAnalyzer {
+    fun analyze(features: FeatureVector, speed: Float): DrivingEvent
+}
+</file>
+
+<file path="com/teledrive/app/analysis/MLAnalyzer.kt">
+package com.teledrive.app.analysis
+
+import com.teledrive.app.core.*
+
+class MLAnalyzer : DrivingAnalyzer {
+
+    override fun analyze(features: FeatureVector, speed: Float): DrivingEvent {
+
+        // TODO: Replace with ML model later
+        return DrivingEvent(DrivingEventType.NORMAL, 0f)
+    }
+}
+</file>
+
+<file path="com/teledrive/app/analysis/RuleBasedAnalyzer.kt">
+package com.teledrive.app.analysis
+
+import com.teledrive.app.core.*
+import android.util.Log
+
+class RuleBasedAnalyzer : DrivingAnalyzer {
+
+    override fun analyze(features: FeatureVector, speed: Float): DrivingEvent {
+
+        val peak = features.peakForwardAccel
+        val min = features.minForwardAccel
+        val std = features.stdAccel
+        val gyro = kotlin.math.abs(features.meanGyro)
+
+        // ==============================
+        // 🚫 SPEED FILTER (STRONGER)
+        // ==============================
+        if (speed < 15f) {
+            return DrivingEvent(DrivingEventType.NORMAL, 0f)
+        }
+
+        // ==============================
+        // 🧠 RELAXED CLEAN CHECK
+        // ==============================
+        val isClean = std < 2.0f && gyro < 1.2f
+
+        // ==============================
+        // 🚀 HARSH ACCELERATION
+        // ==============================
+        val isHarshAccel =
+            peak > 3.5f &&
+                    peak > kotlin.math.abs(min)
+
+        // ==============================
+        // 🛑 HARSH BRAKING
+        // ==============================
+        val isHarshBrake =
+            min < -3.5f &&
+                    kotlin.math.abs(min) > peak
+
+        // ==============================
+        // ⚠️ INSTABILITY (LESS SENSITIVE)
+        // ==============================
+        val isUnstable =
+            std > 3.0f || gyro > 2.0f
+
+        Log.d(
+            "ANALYZER_FINAL",
+            "spd=$speed peak=$peak min=$min std=$std gyro=$gyro"
+        )
+
+        return when {
+            isHarshBrake && isClean ->
+                DrivingEvent(DrivingEventType.HARSH_BRAKING, kotlin.math.abs(min))
+
+            isHarshAccel && isClean ->
+                DrivingEvent(DrivingEventType.HARSH_ACCELERATION, peak)
+
+            isUnstable ->
+                DrivingEvent(DrivingEventType.UNSTABLE_RIDE, std)
+
+            else ->
+                DrivingEvent(DrivingEventType.NORMAL, 0f)
+        }
+    }
+}
+</file>
+
+<file path="com/teledrive/app/camera/CameraControllerActivity.kt">
+package com.teledrive.app.camera
+
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Bundle
+import android.util.Log
+import android.view.View
+import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
+import androidx.camera.core.*
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import com.teledrive.app.core.RideSessionManager
+import com.teledrive.app.services.SensorService
+import java.io.File
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+
+class CameraControllerActivity : AppCompatActivity() {
+
+    private var imageCapture: ImageCapture? = null
+    private lateinit var cameraExecutor: ExecutorService
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        // Step 2: PREMIUM FEEL - No layout content means no "boxy" UI flash
+        // We create a tiny, invisible preview just to satisfy CameraX requirements
+        val dummyPreview = PreviewView(this).apply {
+            layoutParams = ViewGroup.LayoutParams(1, 1)
+            visibility = View.INVISIBLE
+        }
+        setContentView(dummyPreview)
+
+        cameraExecutor = Executors.newSingleThreadExecutor()
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            startCameraFlow()
+        } else {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), 101)
+        }
+    }
+
+    private fun startCameraFlow() {
+        val eventType = intent.getStringExtra("event_type") ?: "manual"
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+
+        cameraProviderFuture.addListener({
+            val cameraProvider = cameraProviderFuture.get()
+
+            // Build ImageCapture with optimized resolution for speed
+            imageCapture = ImageCapture.Builder()
+                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                .setFlashMode(ImageCapture.FLASH_MODE_OFF)
+                .build()
+
+            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+            try {
+                cameraProvider.unbindAll()
+                cameraProvider.bindToLifecycle(this, cameraSelector, imageCapture)
+
+                // Trigger photo almost immediately (100ms for lens focus)
+                window.decorView.postDelayed({
+                    takePhoto(eventType)
+                }, 100)
+
+            } catch (e: Exception) {
+                Log.e("Camera", "Binding failed", e)
+                finish()
+            }
+        }, ContextCompat.getMainExecutor(this))
+    }
+
+    private fun takePhoto(eventType: String) {
+        val imageCapture = imageCapture ?: return
+
+        val file = File(
+            getExternalFilesDir(null),
+            "evidence_${System.currentTimeMillis()}.jpg"
+        )
+
+        val outputOptions = ImageCapture.OutputFileOptions.Builder(file).build()
+
+        imageCapture.takePicture(
+            outputOptions,
+            cameraExecutor,
+            object : ImageCapture.OnImageSavedCallback {
+                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                    val imagePath = file.absolutePath
+                    Log.i("Camera", "✅ Evidence Captured: $imagePath")
+
+                    // Step 3: DATA PERSISTENCE - Save to both locations to ensure Summary Screen sees it
+                    RideSessionManager.lastEventImagePath = imagePath
+                    SensorService.lastCapturedImagePath = imagePath
+
+                    // Close activity immediately to stop lag
+                    finish()
+                }
+
+                override fun onError(exception: ImageCaptureException) {
+                    Log.e("Camera", "Capture Failed", exception)
+                    finish()
+                }
+            }
+        )
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        cameraExecutor.shutdown()
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            startCameraFlow()
+        } else {
+            finish()
+        }
+    }
+}
+</file>
+
+<file path="com/teledrive/app/core/EcoScoreEngine.kt">
+package com.teledrive.app.core
+
+import kotlin.math.abs
+
+class EcoScoreEngine {
+
+    // 🏍️ BIKE CONSTANTS
+    private val BASE_LITERS_PER_KM = 0.025f // ~40 km/L
+    private val HARSH_ACCEL_WASTAGE = 0.004f
+    private val HARSH_BRAKE_WASTAGE = 0.0025f
+
+    private var totalFuelWasted = 0f
+    private var score = 100
+
+    // Balanced weights (reduced impact)
+    private val accelWeight = 0.6f
+    private val brakingWeight = 1.0f
+    private val instabilityWeight = 0.7f
+
+    fun processEvent(event: DrivingEvent): Int {
+
+        val severity = abs(event.severity).coerceIn(0f, 10f)
+
+        // ✅ NORMALIZED PENALTY (IMPORTANT FIX)
+        val normalized = severity / 5f  // scale to 0–2 range
+
+        val penalty = when (event.type) {
+            DrivingEventType.HARSH_ACCELERATION -> (normalized * accelWeight * 10).toInt()
+            DrivingEventType.HARSH_BRAKING -> (normalized * brakingWeight * 10).toInt()
+            DrivingEventType.UNSTABLE_RIDE -> (normalized * instabilityWeight * 10).toInt()
+            DrivingEventType.NORMAL -> 0
+        }
+
+        // ✅ FUEL WASTAGE (scaled with severity)
+        val wastage = when (event.type) {
+            DrivingEventType.HARSH_ACCELERATION -> normalized * HARSH_ACCEL_WASTAGE
+            DrivingEventType.HARSH_BRAKING -> normalized * HARSH_BRAKE_WASTAGE
+            else -> 0f
+        }
+
+        totalFuelWasted += wastage
+
+        // ✅ UPDATE SCORE (controlled drop)
+        score -= penalty
+        if (score < 0) score = 0
+        if (score > 100) score = 100
+
+        return score
+    }
+
+    fun getFinalFuelConsumption(distanceKm: Float): Float {
+        val baseConsumption = distanceKm * BASE_LITERS_PER_KM
+        return baseConsumption + totalFuelWasted
+    }
+
+    fun getFinancialLoss(fuelPrice: Float = 105.0f): Float {
+        return totalFuelWasted * fuelPrice
+    }
+}
+</file>
+
+<file path="com/teledrive/app/core/EventDetector.kt">
+package com.teledrive.app.core
+
+import android.util.Log
+import kotlin.math.abs
+
+class EventDetector {
+
+    private var lastEventTime = 0L
+    private val cooldownMs = 1500L
+
+    // 🔥 Sustained detection buffer (IMPORTANT)
+    private val accelBuffer = ArrayDeque<Float>()
+    private val brakeBuffer = ArrayDeque<Float>()
+    private val bufferSize = 5   // ~500ms window (assuming ~100ms sampling)
+
+    fun detectEvent(features: FeatureVector, speedKmH: Float): DrivingEvent {
+
+        val now = System.currentTimeMillis()
+
+        // ==============================
+        // 1. SPEED GATE (IMPORTANT)
+        // ==============================
+        if (speedKmH < 5.0f) {
+            clearBuffers()
+            return DrivingEvent(DrivingEventType.NORMAL, 0f)
+        }
+
+        // ==============================
+        // 2. COOLDOWN
+        // ==============================
+        if (now - lastEventTime < cooldownMs) {
+            return DrivingEvent(DrivingEventType.NORMAL, 0f)
+        }
+
+        val accel = features.peakForwardAccel
+        val brake = features.minForwardAccel
+        val std = features.stdAccel
+        val gyro = abs(features.meanGyro)
+
+        // ==============================
+        // 3. MOTION VALIDATION (CRITICAL)
+        // ==============================
+        val isStableMotion = std < 3.5f && gyro < 3.0f
+
+        // ==============================
+        // 4. BUFFER UPDATE (SUSTAIN CHECK)
+        // ==============================
+        push(accelBuffer, accel)
+        push(brakeBuffer, brake)
+
+        val accelCount = accelBuffer.count { it > 2.5f }
+        val brakeCount = brakeBuffer.count { it < -3.0f }
+
+        val accelSustained = accelCount >= 3   // 60% of window
+        val brakeSustained = brakeCount >= 3
+
+        // ==============================
+        // 🚀 HARSH ACCELERATION
+        // ==============================
+        if (accelSustained && isStableMotion) {
+            return trigger(now, DrivingEventType.HARSH_ACCELERATION, accel, speedKmH, std, gyro)
+        }
+
+        // ==============================
+        // 🛑 HARSH BRAKING
+        // ==============================
+        if (brakeSustained && isStableMotion) {
+            return trigger(now, DrivingEventType.HARSH_BRAKING, abs(brake), speedKmH, std, gyro)
+        }
+
+        // ==============================
+        // ⚠️ UNSTABLE RIDE
+        // ==============================
+        if (!isStableMotion && (std > 2.2f || gyro > 1.5f)) {
+            return trigger(now, DrivingEventType.UNSTABLE_RIDE, std, speedKmH, std, gyro)
+        }
+
+        return DrivingEvent(DrivingEventType.NORMAL, 0f)
+    }
+
+    // ==============================
+    // BUFFER HELPERS
+    // ==============================
+    private fun push(buffer: ArrayDeque<Float>, value: Float) {
+        if (buffer.size >= bufferSize) {
+            buffer.removeFirst()
+        }
+        buffer.addLast(value)
+    }
+
+    private fun clearBuffers() {
+        accelBuffer.clear()
+        brakeBuffer.clear()
+    }
+
+    // ==============================
+    // EVENT TRIGGER
+    // ==============================
+    private fun trigger(
+        time: Long,
+        type: DrivingEventType,
+        severity: Float,
+        speed: Float,
+        std: Float,
+        gyro: Float
+    ): DrivingEvent {
+
+        lastEventTime = time
+
+        Log.i(
+            "EVENT_DETECTOR",
+            ">>> $type | sev=$severity | speed=$speed | std=$std | gyro=$gyro"
+        )
+
+        return DrivingEvent(type, severity)
+    }
+}
+</file>
+
+<file path="com/teledrive/app/core/FuelEstimator.kt">
+package com.teledrive.app.core
+
+class FuelEstimator {
+
+    private var baseMileage = 55f
+
+    fun setBaseMileage(value: Float) {
+        baseMileage = value
+    }
+
+    fun estimateMileage(
+        harshAccel: Int,
+        harshBrake: Int,
+        instability: Int
+    ): Float {
+
+        val penalty =
+            (harshAccel * 0.4f) +
+                    (harshBrake * 0.3f) +
+                    (instability * 0.5f)
+
+        val result = baseMileage - penalty
+
+        return result.coerceIn(30f, 70f)
+    }
+
+    fun estimateFuelUsed(distanceKm: Float, mileage: Float): Float {
+
+        if (mileage <= 0f) return 0f
+
+        return distanceKm / mileage
+    }
+}
+</file>
+
+<file path="com/teledrive/app/core/LiveDataBus.kt">
+package com.teledrive.app.core
+
+object LiveDataBus {
+    var listener: ((String, Float, Float) -> Unit)? = null
+}
+</file>
+
+<file path="com/teledrive/app/core/Models.kt">
+package com.teledrive.app.core
+
+data class SensorSample(
+    val timestamp: Long,
+    val ax: Float,
+    val ay: Float,
+    val az: Float,
+    val gx: Float,
+    val gy: Float,
+    val gz: Float,
+    val heading:Float
+)
+
+data class FeatureVector(
+    val meanForwardAccel: Float,
+    val peakForwardAccel: Float,
+    val minForwardAccel: Float,
+    val stdAccel: Float,
+    val meanGyro: Float,
+    val peakGyro: Float
+)
+
+enum class DrivingEventType {
+    HARSH_ACCELERATION,
+    HARSH_BRAKING,
+    UNSTABLE_RIDE,
+    NORMAL
+}
+
+data class DrivingEvent(
+    val type: DrivingEventType,
+    val severity: Float
+)
+</file>
+
+<file path="com/teledrive/app/core/RideSession.kt">
+package com.teledrive.app.core
+
+data class RideSession(
+    val startTime: Long,
+    var endTime: Long = 0L,
+
+    var eventCount: Int = 0,
+    var harshAccelerationCount: Int = 0,
+    var harshBrakingCount: Int = 0,
+    var unstableRideCount: Int = 0,
+
+    var finalScore: Int = 100,
+
+    var distanceKm: Float = 0f,
+    var estimatedMileage: Float = 0f,
+    var fuelUsed: Float = 0f,
+    var lastEventImagePath: String? = null,
+
+    // Fix: Added default value to prevent initialization error
+    var rideDuration: Long = 0L
+)
+
+class RideSessionManager {
+    companion object {
+        var lastSession: RideSession? = null
+        var lastEventImagePath: String? = null
+    }
+
+    private var currentSession: RideSession? = null
+
+    // Fix: Ensure distance is updated in the active session
+    fun updateDistance(distance: Float) {
+        currentSession?.let {
+            it.distanceKm = distance
+        }
+    }
+
+    fun setLastEventImagePath(path: String) {
+        currentSession?.lastEventImagePath = path
+        lastEventImagePath = path
+    }
+
+    fun startRide() {
+        currentSession = RideSession(
+            startTime = System.currentTimeMillis()
+        )
+    }
+
+    fun processEvent(event: DrivingEvent) {
+        val session = currentSession ?: return
+        session.eventCount++
+
+        when (event.type) {
+            DrivingEventType.HARSH_ACCELERATION ->
+                session.harshAccelerationCount++
+
+            DrivingEventType.HARSH_BRAKING ->
+                session.harshBrakingCount++
+
+            DrivingEventType.UNSTABLE_RIDE ->
+                session.unstableRideCount++
+
+            DrivingEventType.NORMAL -> {}
+        }
+    }
+
+    fun updateScore(score: Int) {
+        currentSession?.finalScore = score
+    }
+
+    fun endRide(): RideSession? {
+        val session = currentSession ?: return null
+
+        // Final calculations
+        session.endTime = System.currentTimeMillis()
+        session.rideDuration = session.endTime - session.startTime
+
+        // Calculate fuel using your FuelEstimator
+        val fuelEstimator = FuelEstimator()
+
+        // Calculate mileage (e.g., base 40 km/l - penalties)
+        val mileage = fuelEstimator.estimateMileage(
+            session.harshAccelerationCount,
+            session.harshBrakingCount,
+            session.unstableRideCount
+        )
+        session.estimatedMileage = mileage
+
+        // Calculate fuel used: (Distance / Mileage)
+        // If mileage is 0 (failed calc), use a safe default to avoid Infinity
+        val safeMileage = if (mileage > 0) mileage else 40f
+        session.fuelUsed = session.distanceKm / safeMileage
+
+        lastSession = session
+        currentSession = null // Reset for next ride
+        return session
+    }
+}
+</file>
+
+<file path="com/teledrive/app/core/TeleDriveProcessor.kt">
+package com.teledrive.app.core
+
+import kotlin.math.sqrt
+
+class TeleDriveProcessor {
+
+    private var gravityX = 0f
+    private var gravityY = 0f
+    private var gravityZ = 0f
+
+    private val alpha = 0.95f
+    private var isInitialized = false
+
+    // ✅ Forward acceleration using heading
+    private fun getForwardAcceleration(lx: Float, ly: Float, heading: Float): Float {
+        val headingRad = Math.toRadians(heading.toDouble())
+
+        return (
+                lx * kotlin.math.cos(headingRad) +
+                        ly * kotlin.math.sin(headingRad)
+                ).toFloat()
+    }
+
+    private fun median(values: List<Float>): Float {
+        val sorted = values.sorted()
+        val mid = sorted.size / 2
+        return if (sorted.size % 2 == 0)
+            (sorted[mid - 1] + sorted[mid]) / 2f
+        else
+            sorted[mid]
+    }
+
+    fun extractFeatures(window: List<SensorSample>): FeatureVector {
+
+        if (window.isEmpty()) {
+            return FeatureVector(0f, 0f, 0f, 0f, 0f, 0f)
+        }
+
+        val signedAccelList = mutableListOf<Float>()
+        val rawMagnitudeList = mutableListOf<Float>()
+        val gyroList = mutableListOf<Float>()
+
+        for (s in window) {
+
+            // ==========================
+            // 1. GRAVITY ESTIMATION
+            // ==========================
+            if (!isInitialized) {
+                gravityX = s.ax
+                gravityY = s.ay
+                gravityZ = s.az
+                isInitialized = true
+            } else {
+                gravityX = alpha * gravityX + (1 - alpha) * s.ax
+                gravityY = alpha * gravityY + (1 - alpha) * s.ay
+                gravityZ = alpha * gravityZ + (1 - alpha) * s.az
+            }
+
+            // ==========================
+            // 2. REMOVE GRAVITY
+            // ==========================
+            val lx = s.ax - gravityX
+            val ly = s.ay - gravityY
+            val lz = s.az - gravityZ
+
+            val magnitude = sqrt(lx * lx + ly * ly + lz * lz)
+
+            // 🚫 Spike filter (ignore extreme noise)
+            if (magnitude > 12f) continue
+
+            // ==========================
+            // 3. HEADING SAFETY
+            // ==========================
+            val heading = if (s.heading == 0f) 0f else s.heading
+
+            // ==========================
+            // 4. FORWARD ACCELERATION
+            // ==========================
+            val forward = getForwardAcceleration(lx, ly, heading)
+
+            signedAccelList.add(forward)
+            rawMagnitudeList.add(magnitude)
+
+            // ==========================
+            // 5. GYRO
+            // ==========================
+            val gyroMag = sqrt(s.gx * s.gx + s.gy * s.gy + s.gz * s.gz)
+            gyroList.add(gyroMag)
+
+            // 🔍 DEBUG (keep during testing)
+            android.util.Log.d(
+                "FORWARD_DEBUG",
+                "heading=$heading lx=$lx ly=$ly forward=$forward"
+            )
+        }
+
+        // ==========================
+        // 6. MEDIAN FILTER
+        // ==========================
+        val medianFiltered = signedAccelList.windowed(
+            size = 5,
+            step = 1,
+            partialWindows = true
+        ) {
+            median(it)
+        }
+
+        // ==========================
+        // 7. MOVING AVERAGE
+        // ==========================
+        val smoothed = medianFiltered.windowed(
+            size = 8,
+            step = 1,
+            partialWindows = true
+        ) {
+            it.average().toFloat()
+        }
+
+        val peak = smoothed.maxOrNull() ?: 0f
+        val min = smoothed.minOrNull() ?: 0f
+        val mean = smoothed.average().toFloat()
+
+        val meanMag = rawMagnitudeList.average().toFloat()
+        val variance = rawMagnitudeList.map { (it - meanMag) * (it - meanMag) }.average()
+        val std = sqrt(variance).toFloat()
+
+        val meanGyro = gyroList.average().toFloat()
+        val peakGyro = gyroList.maxOrNull() ?: 0f
+
+        android.util.Log.d(
+            "PROCESSOR_FINAL",
+            "mean=$mean peak=$peak min=$min std=$std gyro=$meanGyro"
+        )
+
+        return FeatureVector(
+            meanForwardAccel = mean,
+            peakForwardAccel = peak,
+            minForwardAccel = min,
+            stdAccel = std,
+            meanGyro = meanGyro,
+            peakGyro = peakGyro
+        )
+    }
+}
+</file>
+
+<file path="com/teledrive/app/LiveTripActivity.kt">
+package com.teledrive.app
+
+import android.content.Intent
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.teledrive.app.core.LiveDataBus
+import com.teledrive.app.services.SensorService
+
+class LiveTripActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            var liveEvent by remember { mutableStateOf("NORMAL") }
+            var liveSpeed by remember { mutableStateOf(0f) }
+            var liveStd by remember { mutableStateOf(0f) }
+
+            DisposableEffect(Unit) {
+                val handler = android.os.Handler(android.os.Looper.getMainLooper())
+                var resetRunnable: Runnable? = null
+
+                LiveDataBus.listener = { event, speed, std ->
+
+                    liveSpeed = speed.coerceAtLeast(0f)
+                    liveStd = std
+
+                    if (event != "NORMAL") {
+
+                        liveEvent = event
+
+                        // cancel previous reset safely
+                        resetRunnable?.let { handler.removeCallbacks(it) }
+
+                        resetRunnable = Runnable {
+                            liveEvent = "NORMAL"
+                        }
+
+                        handler.postDelayed(resetRunnable!!, 2000)
+
+                    } else {
+                        liveEvent = "NORMAL"
+                    }
+                }
+                onDispose { LiveDataBus.listener = null }
+            }
+
+            PremiumLiveTripScreen(
+                event = liveEvent,
+                speed = liveSpeed,
+                std = liveStd,
+                onEndTrip = {
+                    stopService(Intent(this@LiveTripActivity, SensorService::class.java))
+                    finish()
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun PremiumLiveTripScreen(
+    event: String,
+    speed: Float,
+    std: Float,
+    onEndTrip: () -> Unit
+) {
+    // Background glow animation to fill the "empty" space
+    val infiniteTransition = rememberInfiniteTransition(label = "mesh")
+    val glowOffset by infiniteTransition.animateFloat(
+        initialValue = 0f, targetValue = 1000f,
+        animationSpec = infiniteRepeatable(tween(20000, easing = LinearEasing), RepeatMode.Reverse),
+        label = "offset"
+    )
+
+    val backgroundColor by animateColorAsState(
+        targetValue = when (event) {
+            "NORMAL" -> Color(0xFF070B14)
+            "HARSH_BRAKING" -> Color(0xFF2D0505)
+            else -> Color(0xFF0F0A1E)
+        }, label = "bg"
+    )
+
+    val accentColor = when (event) {
+        "NORMAL" -> Color(0xFF00FFA3) // Electric Mint
+        "HARSH_BRAKING" -> Color(0xFFFF2D55) // Ferrari Red
+        else -> Color(0xFFFFD60A) // Cyber Yellow
+    }
+
+    Box(modifier = Modifier.fillMaxSize().background(backgroundColor)) {
+
+        // --- Ambient Background Mesh ---
+        Canvas(modifier = Modifier.fillMaxSize().blur(80.dp)) {
+            drawCircle(
+                brush = Brush.radialGradient(listOf(accentColor.copy(0.15f), Color.Transparent)),
+                radius = 800f,
+                center = center.copy(x = center.x + (glowOffset % 200) - 100)
+            )
+        }
+
+        Column(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 30.dp, vertical = 50.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+
+            // --- LIVE MONITORING INDICATOR ---
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                val pulse by infiniteTransition.animateFloat(
+                    initialValue = 0.6f, targetValue = 1.2f,
+                    animationSpec = infiniteRepeatable(tween(1000), RepeatMode.Reverse), label = "pulse"
+                )
+                Box(modifier = Modifier.size(6.dp).scale(pulse).background(accentColor, CircleShape))
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = "LIVE MONITORING",
+                    color = Color.White.copy(alpha = 0.9f),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = 4.sp
+                )
+            }
+
+            // --- MAIN GAUGE ---
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(contentAlignment = Alignment.Center) {
+                    // Outer decorative glow ring
+                    Box(modifier = Modifier.size(260.dp).border(1.dp, Color.White.copy(0.05f), CircleShape))
+
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        val animatedSpeed by animateFloatAsState(
+                            targetValue = speed,
+                            animationSpec = tween(500),
+                            label = "speed_anim"
+                        )
+                        Text(
+                            text = speed.toInt().toString(),
+                            fontSize = 130.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color.White,
+                            fontFamily = FontFamily.SansSerif,
+                            modifier = Modifier.offset(y = 10.dp)
+                        )
+                        Text(
+                            text = "KILOMETERS / HR",
+                            fontSize = 12.sp,
+                            color = accentColor.copy(alpha = 0.8f),
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 5.sp
+                        )
+                    }
+                }
+            }
+
+            // --- STATUS CARD (Sleeker, Non-Boxy) ---
+            Surface(
+                color = Color.White.copy(0.03f),
+                shape = RoundedCornerShape(30.dp),
+                modifier = Modifier.fillMaxWidth().border(1.dp, Color.White.copy(0.08f), RoundedCornerShape(30.dp))
+            ) {
+                Row(
+                    modifier = Modifier.padding(25.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
+                        Text("RIDE STATUS", color = Color.White.copy(0.4f), fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+                        Text(formatEventPremium(event), color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
+                    }
+                    Box(modifier = Modifier.width(1.dp).height(30.dp).background(Color.White.copy(0.1f)))
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text("STABILITY", color = Color.White.copy(0.4f), fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+                        Text("%.2f".format(std), color = accentColor, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
+                    }
+                }
+            }
+
+            // --- FINISH BUTTON (Premium Floating Action) ---
+            Button(
+                onClick = onEndTrip,
+                modifier = Modifier.fillMaxWidth().height(70.dp).shadow(30.dp, RoundedCornerShape(25.dp), ambientColor = accentColor),
+                shape = RoundedCornerShape(25.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+            ) {
+                Text("FINISH SESSION", color = Color.Black, fontWeight = FontWeight.ExtraBold, fontSize = 15.sp, letterSpacing = 2.sp)
+            }
+        }
+    }
+}
+
+fun formatEventPremium(event: String): String {
+    return when(event) {
+        "NORMAL" -> "Optimal"
+        "HARSH_BRAKING" -> "Harsh Brake"
+        "HARSH_ACCELERATION" -> "Aggressive"
+        "UNSTABLE_RIDE" -> "Unstable"
+        else -> event
+    }
+}
+</file>
+
+<file path="com/teledrive/app/MainActivity.kt">
+package com.teledrive.app
+
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
+import android.os.Bundle
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import com.teledrive.app.services.SensorService
+import com.teledrive.app.ui.theme.TeleDriveTheme
+import com.teledrive.app.analysis.AnalyzerProvider
+import android.util.Log
+
+class MainActivity : ComponentActivity() {
+
+    companion object {
+        private const val LOCATION_PERMISSION_CODE = 1001
+        private const val NOTIFICATION_PERMISSION_CODE = 1002
+        private const val CAMERA_PERMISSION_CODE = 1003
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        createNotificationChannel()
+
+        setContent {
+            TeleDriveTheme {
+                val isAutoMode = remember { mutableStateOf(false) }
+
+                PremiumStartScreen(
+                    isAutoMode = isAutoMode.value,
+                    onModeChange = { isChecked ->
+
+                        isAutoMode.value = isChecked   // ✅ FIXED
+
+                        AnalyzerProvider.useML = isChecked
+
+                        Log.d("MODE", if (isChecked) "ML MODE" else "RULE MODE")
+                    },
+                    onStartClick = {
+                        startTeleDriveFlow(isAutoMode.value)
+                        startActivity(Intent(this, LiveTripActivity::class.java))
+                    }
+                )
+            }
+        }
+    }
+
+    private fun startTeleDriveFlow(isAuto: Boolean) {
+        val permissions = mutableListOf<String>()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+        permissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
+        permissions.add(Manifest.permission.CAMERA)
+
+        val missingPermissions = permissions.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+
+        if (missingPermissions.isNotEmpty()) {
+            ActivityCompat.requestPermissions(this, missingPermissions.toTypedArray(), 100)
+            return
+        }
+
+        val intent = Intent(this, SensorService::class.java).apply {
+            putExtra("mode", if (isAuto) "AUTO" else "MANUAL")
+        }
+        ContextCompat.startForegroundService(this, intent)
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                "ride_channel", "Ride Notifications", NotificationManager.IMPORTANCE_DEFAULT
+            )
+            getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+        }
+    }
+}
+
+@Composable
+fun PremiumStartScreen(
+    isAutoMode: Boolean,
+    onModeChange: (Boolean) -> Unit,
+    onStartClick: () -> Unit
+) {
+    // --- ANIMATION STATES ---
+    val visible = remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        visible.value = true // Triggers the entrance animation
+    }
+
+    val infiniteTransition = rememberInfiniteTransition(label = "bg")
+    val glowOffset by infiniteTransition.animateFloat(
+        initialValue = 0f, targetValue = 1000f,
+        animationSpec = infiniteRepeatable(tween(15000, easing = LinearEasing), RepeatMode.Reverse),
+        label = "glow"
+    )
+
+    // Entrance animation for Logo (Scale + Fade)
+    val logoScale by animateFloatAsState(
+        targetValue = if (visible.value) 1f else 0.8f,
+        animationSpec = tween(1200, easing = EaseOutBack), label = "logo_scale"
+    )
+    val contentAlpha by animateFloatAsState(
+        targetValue = if (visible.value) 1f else 0f,
+        animationSpec = tween(1000), label = "alpha"
+    )
+
+    Box(modifier = Modifier.fillMaxSize().background(Color(0xFF070B14))) {
+
+        // --- Ambient Background ---
+        Canvas(modifier = Modifier.fillMaxSize().blur(100.dp)) {
+            drawCircle(
+                brush = Brush.radialGradient(listOf(Color(0xFF00FFA3).copy(0.12f), Color.Transparent)),
+                radius = 1200f,
+                center = center.copy(x = center.x + (glowOffset % 300) - 150)
+            )
+        }
+
+        Column(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 40.dp, vertical = 60.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+
+            // --- Top Toggle (Fades in) ---
+            Surface(
+                color = Color.White.copy(0.05f),
+                shape = RoundedCornerShape(50),
+                modifier = Modifier
+                    .graphicsLayer(alpha = contentAlpha) // Fade in
+                    .border(1.dp, Color.White.copy(0.1f), RoundedCornerShape(50))
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = if (isAutoMode) "AI ASSIST ACTIVE" else "MANUAL MODE",
+                        color = if (isAutoMode) Color(0xFF00FFA3) else Color.White.copy(0.6f),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 2.sp
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Switch(
+                        checked = isAutoMode,
+                        onCheckedChange = onModeChange,
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color(0xFF00FFA3),
+                            checkedTrackColor = Color(0xFF00FFA3).copy(0.2f)
+                        )
+                    )
+                }
+            }
+
+            // --- Branding Section (Scales in) ---
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.graphicsLayer(scaleX = logoScale, scaleY = logoScale, alpha = contentAlpha)
+            ) {
+                Text(
+                    text = "TELEDRIVE",
+                    fontSize = 34.sp,
+                    fontWeight = FontWeight.Black,
+                    color = Color.White,
+                    letterSpacing = 4.sp,
+                    maxLines = 1,
+                    softWrap = false
+                )
+
+                Box(modifier = Modifier.width(42.dp).height(3.dp).background(Color(0xFF00FFA3)))
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "PRECISION TELEMATICS",
+                    color = Color.White.copy(0.4f),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 3.sp
+                )
+            }
+
+            // --- Ignition Button (Slides up) ---
+            val buttonSlide by animateDpAsState(
+                targetValue = if (visible.value) 0.dp else 50.dp,
+                animationSpec = tween(1000, easing = EaseOutCubic), label = "slide"
+            )
+
+            Column(modifier = Modifier.fillMaxWidth().offset(y = buttonSlide).graphicsLayer(alpha = contentAlpha)) {
+                Button(
+                    onClick = onStartClick,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(75.dp)
+                        .shadow(40.dp, RoundedCornerShape(25.dp), ambientColor = Color(0xFF00FFA3)),
+                    shape = RoundedCornerShape(25.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+                ) {
+                    Text(
+                        "START TRIP",
+                        color = Color.Black,
+                        fontWeight = FontWeight.Black,
+                        fontSize = 16.sp,
+                        letterSpacing = 3.sp
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Text(
+                    text = "Ensure device is securely mounted",
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    color = Color.White.copy(0.3f),
+                    fontSize = 11.sp,
+                    letterSpacing = 1.sp
+                )
+            }
+        }
+    }
+}
+</file>
+
+<file path="com/teledrive/app/ml/DataLogger.kt">
+package com.teledrive.app.ml
+
+import android.content.Context
+import com.teledrive.app.core.SensorSample
+import java.io.File
+import java.io.FileWriter
+
+class DataLogger(context: Context) {
+
+    private val file = File(context.getExternalFilesDir(null), "dataset.csv")
+
+    init {
+        if (!file.exists()) {
+            file.writeText("ax,ay,az,gx,gy,gz,label\n")
+        }
+    }
+
+    fun logWindow(window: List<SensorSample>, label: Int) {
+        val writer = FileWriter(file, true)
+
+        for (sample in window) {
+            writer.append(
+                "${sample.ax},${sample.ay},${sample.az}," +
+                        "${sample.gx},${sample.gy},${sample.gz},$label\n"
+            )
+        }
+
+        writer.flush()
+        writer.close()
+    }
+}
+</file>
+
+<file path="com/teledrive/app/ml/MLModelRunner.kt">
+package com.teledrive.app.ml
+
+import android.content.Context
+import com.teledrive.app.core.SensorSample
+import org.tensorflow.lite.Interpreter
+import java.io.FileInputStream
+import java.nio.channels.FileChannel
+
+class MLModelRunner(context: Context) {
+
+    private val interpreter: Interpreter
+
+    init {
+        val fileDescriptor = context.assets.openFd("model.tflite")
+        val inputStream = FileInputStream(fileDescriptor.fileDescriptor)
+        val fileChannel = inputStream.channel
+
+        val startOffset = fileDescriptor.startOffset
+        val declaredLength = fileDescriptor.declaredLength
+
+        val mappedBuffer = fileChannel.map(
+            FileChannel.MapMode.READ_ONLY,
+            startOffset,
+            declaredLength
+        )
+
+        interpreter = Interpreter(mappedBuffer)
+    }
+
+    fun predict(window: List<SensorSample>): Int {
+
+        val input = Array(1) { Array(50) { FloatArray(6) } }
+
+        val size = minOf(window.size, 50)
+
+        for (i in 0 until size) {
+            val s = window[i]
+
+            input[0][i][0] = normalize(s.ax, 10f)
+            input[0][i][1] = normalize(s.ay, 10f)
+            input[0][i][2] = normalize(s.az, 10f)
+            input[0][i][3] = normalize(s.gx, 5f)
+            input[0][i][4] = normalize(s.gy, 5f)
+            input[0][i][5] = normalize(s.gz, 5f)
+        }
+
+        val output = Array(1) { FloatArray(4) }
+
+        interpreter.run(input, output)
+
+        return output[0].indices.maxByOrNull { output[0][it] } ?: 0
+    }
+
+    private fun normalize(value: Float, scale: Float): Float {
+        return (value / scale).coerceIn(-1f, 1f)
+    }
+}
+</file>
+
+<file path="com/teledrive/app/RideSummaryActivity.kt">
+package com.teledrive.app
+
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.teledrive.app.core.RideSessionManager
+import com.teledrive.app.services.SensorService
+
+class RideSummaryActivity : ComponentActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        val session = RideSessionManager.lastSession ?: run {
+            finish()
+            return
+        }
+
+        // 🛡️ CRITICAL FIX: Extract data from Intent (Sent by SensorService)
+        val fuelUsed = intent.getFloatExtra("fuelUsed", 0.0f)
+        val moneyLost = intent.getFloatExtra("moneyLost", 0.0f)
+        val finalScore = intent.getIntExtra("score", session.finalScore)
+        val finalDistance = intent.getFloatExtra("distance", session.distanceKm)
+        val imagePath = intent.getStringExtra("imagePath") ?: SensorService.lastCapturedImagePath
+
+        val durationMillis = session.endTime - session.startTime
+        val totalSeconds = durationMillis / 1000
+        val durationFormatted = "${totalSeconds / 60}m ${totalSeconds % 60}s"
+        val avgSpeed = if (totalSeconds > 0) finalDistance / (totalSeconds / 3600f) else 0f
+
+        val scoreColor = when {
+            finalScore >= 90 -> Color(0xFF00FFA3)
+            finalScore >= 75 -> Color(0xFF00E5FF)
+            finalScore >= 60 -> Color(0xFFFFD60A)
+            else -> Color(0xFFFF2D55)
+        }
+
+        setContent {
+            SummaryScreen(
+                score = finalScore,
+                scoreColor = scoreColor,
+                stats = listOf(
+                    "Distance" to "%.2f km".format(finalDistance),
+                    "Avg Speed" to "%.1f km/h".format(avgSpeed),
+                    "Fuel used" to "%.3f L".format(fuelUsed),
+                    "Duration" to durationFormatted
+                ),
+                moneyLost = moneyLost,
+                events = listOf(
+                    "Harsh Acceleration" to session.harshAccelerationCount,
+                    "Harsh Braking" to session.harshBrakingCount,
+                    "Instability" to session.unstableRideCount
+                ),
+                imagePath = imagePath,
+                onClose = { finish() }
+            )
+        }
+    }
+}
+
+@Composable
+fun SummaryScreen(
+    score: Int,
+    scoreColor: Color,
+    stats: List<Pair<String, String>>,
+    moneyLost: Float,
+    events: List<Pair<String, Int>>,
+    imagePath: String?,
+    onClose: () -> Unit
+) {
+    val scrollState = rememberScrollState()
+
+    Box(modifier = Modifier.fillMaxSize().background(Color(0xFF070B14))) {
+        // Blurred Background Glow
+        Canvas(modifier = Modifier.fillMaxSize().blur(100.dp)) {
+            drawCircle(
+                brush = Brush.radialGradient(listOf(scoreColor.copy(0.15f), Color.Transparent)),
+                radius = 1200f,
+                center = center.copy(y = 0f)
+            )
+        }
+
+        Column(
+            modifier = Modifier.fillMaxSize().verticalScroll(scrollState).padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "TELEDRIVE",
+                color = Color.White,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 4.sp,
+                modifier = Modifier.padding(top = 40.dp)
+            )
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            // --- SCORE RING ---
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(200.dp)) {
+                Canvas(modifier = Modifier.size(180.dp)) {
+                    drawArc(
+                        color = Color.White.copy(0.05f),
+                        startAngle = 0f, sweepAngle = 360f, useCenter = false,
+                        style = Stroke(width = 12.dp.toPx(), cap = StrokeCap.Round)
+                    )
+                    drawArc(
+                        brush = Brush.sweepGradient(listOf(scoreColor.copy(0.2f), scoreColor)),
+                        startAngle = -90f, sweepAngle = (score / 100f) * 360f, useCenter = false,
+                        style = Stroke(width = 12.dp.toPx(), cap = StrokeCap.Round)
+                    )
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(text = "$score", fontSize = 72.sp, fontWeight = FontWeight.Black, color = Color.White)
+                    Text(text = "SCORE", fontSize = 12.sp, color = scoreColor, fontWeight = FontWeight.ExtraBold, letterSpacing = 3.sp)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // --- 💰 FINANCIAL LOSS CARD (The "Cost" UI) ---
+            if (moneyLost > 0.01f) {
+                Surface(
+                    color = Color(0xFFFF2D55).copy(0.15f),
+                    shape = RoundedCornerShape(24.dp),
+                    modifier = Modifier.fillMaxWidth().border(1.dp, Color(0xFFFF2D55).copy(0.4f), RoundedCornerShape(24.dp))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(20.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text("FINANCIAL LOSS", color = Color(0xFFFF2D55), fontSize = 11.sp, fontWeight = FontWeight.Black)
+                            Text("Aggressive driving waste", color = Color.White.copy(0.6f), fontSize = 12.sp)
+                        }
+                        Spacer(modifier = Modifier.weight(1f))
+                        Text(
+                            text = "₹${"%.2f".format(moneyLost)}",
+                            color = Color(0xFFFF2D55),
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Black
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+
+            // --- STATS GRID ---
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                StatCard(stats[0].first, stats[0].second, Modifier.weight(1f))
+                StatCard(stats[1].first, stats[1].second, Modifier.weight(1f))
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                StatCard(stats[2].first, stats[2].second, Modifier.weight(1f))
+                StatCard(stats[3].first, stats[3].second, Modifier.weight(1f))
+            }
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            // --- BEHAVIOR ANALYSIS ---
+            Text("BEHAVIOR ANALYSIS", Modifier.align(Alignment.Start), color = Color.White.copy(0.4f), fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+            Spacer(modifier = Modifier.height(16.dp))
+            Surface(
+                color = Color.White.copy(0.02f),
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier.fillMaxWidth().border(1.dp, Color.White.copy(0.05f), RoundedCornerShape(24.dp))
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
+                    events.forEach { event ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(event.first, color = Color.White.copy(0.7f), fontSize = 14.sp)
+                            Text(
+                                text = event.second.toString(),
+                                color = if(event.second > 0) Color(0xFFFF2D55) else Color.White,
+                                fontWeight = FontWeight.ExtraBold, fontSize = 18.sp
+                            )
+                        }
+                    }
+                }
+            }
+
+            // --- EVIDENCE IMAGE ---
+            imagePath?.let { path ->
+                val bitmap = try {
+                    BitmapFactory.decodeFile(path)?.let {
+                        val matrix = Matrix().apply { postRotate(90f) }
+                        Bitmap.createBitmap(it, 0, 0, it.width, it.height, matrix, true)
+                    }
+                } catch (e: Exception) { null }
+
+                bitmap?.let {
+                    Spacer(modifier = Modifier.height(40.dp))
+                    Text("EVENT EVIDENCE", Modifier.align(Alignment.Start), color = Color.White.copy(0.4f), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Image(
+                        bitmap = it.asImageBitmap(), contentDescription = "Evidence",
+                        modifier = Modifier.fillMaxWidth().height(240.dp).clip(RoundedCornerShape(24.dp))
+                            .border(1.dp, Color.White.copy(0.08f), RoundedCornerShape(24.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(40.dp))
+            Button(
+                onClick = onClose,
+                modifier = Modifier.fillMaxWidth().height(60.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+            ) {
+                Text("BACK TO DASHBOARD", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            }
+            Spacer(modifier = Modifier.height(60.dp))
+        }
+    }
+}
+
+@Composable
+fun StatCard(label: String, value: String, modifier: Modifier) {
+    Surface(
+        color = Color.White.copy(0.03f),
+        shape = RoundedCornerShape(20.dp),
+        modifier = modifier.border(1.dp, Color.White.copy(0.04f), RoundedCornerShape(20.dp))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(label.uppercase(), color = Color.White.copy(0.3f), fontSize = 8.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(value, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Black)
+        }
+    }
+}
+</file>
+
+<file path="com/teledrive/app/services/LocationService.kt">
+package com.teledrive.app.services
+
+import android.annotation.SuppressLint
+import android.content.Context
+import android.location.Location
+import android.os.Looper
+import android.util.Log
+import com.google.android.gms.location.*
+
+class LocationService(context: Context) {
+
+    private val fusedLocationClient =
+        LocationServices.getFusedLocationProviderClient(context)
+
+    private var lastLocation: Location? = null
+    private var currentSpeed = 0f
+    private var smoothedSpeed = 0f
+
+    var totalDistanceKm = 0f
+
+    // Lower alpha = more responsive to real-time changes
+    // Higher alpha = smoother but laggier
+    private val alpha = 0.4f
+
+    private var locationCallback: LocationCallback? = null
+
+    fun getHeading():Float { return lastLocation?.bearing ?:0f}
+
+    @SuppressLint("MissingPermission")
+    fun startTracking(
+        onDistanceUpdate: (Float) -> Unit,
+        onSpeedUpdate: (Float) -> Unit
+    ) {
+
+        val request = LocationRequest.Builder(
+            Priority.PRIORITY_HIGH_ACCURACY,
+            1000L // 1 second is standard for GPS apps
+        ).apply {
+            setMinUpdateIntervalMillis(500L)
+            setMinUpdateDistanceMeters(0.5f) // Detect smaller movements
+        }.build()
+
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(result: LocationResult) {
+                val location = result.lastLocation ?: return
+
+                // 1. Calculate Raw Speed (km/h)
+                var rawSpeed = if (location.hasSpeed()) {
+                    location.speed * 3.6f
+                } else {
+                    0f
+                }
+
+                // 2. Fallback for manual speed calculation
+                if (rawSpeed < 1.0f) { // Increased threshold
+                    lastLocation?.let { prev ->
+                        val timeDiff = (location.time - prev.time) / 1000f
+                        // Only calculate if the GPS accuracy is decent (< 15 meters)
+                        if (timeDiff > 0 && location.accuracy < 15f) {
+                            val distance = prev.distanceTo(location)
+                            // If distance is small (< 2m), it's likely just a hand shake/drift
+                            if (distance > 2.0f) {
+                                val calcSpeed = (distance / timeDiff) * 3.6f
+                                if (calcSpeed > 2.0f) rawSpeed = calcSpeed
+                            }
+                        }
+                    }
+                }
+
+// 3. Validate & Smooth
+                val validatedSpeed = when {
+                    rawSpeed < 0.5f -> 0f   // allow slow movement
+                    rawSpeed > 150f -> currentSpeed
+                    else -> rawSpeed
+                }
+                Log.d(
+                    "SPEED_FINAL",
+                    "raw=$rawSpeed validated=$validatedSpeed final=$currentSpeed acc=${location.accuracy}"
+                )
+
+                // Simple Low-Pass Filter
+                smoothedSpeed = (alpha * validatedSpeed) + ((1 - alpha) * smoothedSpeed)
+                currentSpeed = smoothedSpeed
+
+                onSpeedUpdate(currentSpeed)
+
+                // 4. Distance Calculation
+                lastLocation?.let { prev ->
+                    val distanceMeters = prev.distanceTo(location)
+
+                    // Logic: If we moved more than 1 meter AND speed indicates we aren't just drifting
+                    // Reduced thresholds to catch "events" better
+                    if (distanceMeters > 2.0 && currentSpeed > 1.0f) {
+                        val distanceKm = distanceMeters / 1000f
+                        totalDistanceKm += distanceKm
+                        onDistanceUpdate(totalDistanceKm)
+
+                        Log.d("SPEED_DEBUG", "Moving: Speed=$currentSpeed km/h, Added=${distanceMeters}m")
+                    }
+                }
+
+                lastLocation = location
+            }
+        }
+
+        fusedLocationClient.requestLocationUpdates(
+            request,
+            locationCallback!!,
+            Looper.getMainLooper()
+        )
+    }
+
+    fun stopTracking() {
+        locationCallback?.let {
+            fusedLocationClient.removeLocationUpdates(it)
+        }
+        locationCallback = null
+        lastLocation = null // Reset for next session
+    }
+
+    fun getCurrentSpeed(): Float = currentSpeed
+}
+</file>
+
+<file path="com/teledrive/app/services/SensorService.kt">
+package com.teledrive.app.services
+
+import android.app.*
+import android.content.Intent
+import android.hardware.*
+import android.os.Build
+import android.os.IBinder
+import android.util.Log
+import androidx.core.app.NotificationCompat
+import com.teledrive.app.core.*
+import com.teledrive.app.RideSummaryActivity
+import com.teledrive.app.analysis.AnalyzerProvider
+import com.teledrive.app.analysis.DrivingAnalyzer
+import com.teledrive.app.TripHistory.TripSummary
+import com.teledrive.app.TripHistory.TripStorage
+import com.teledrive.app.ml.DataLogger
+import java.io.File
+
+class SensorService : Service(), SensorEventListener {
+
+    companion object {
+        const val TAG = "TeleDriveSensors"
+        const val CHANNEL_ID = "teledrive_foreground"
+        const val NOTIFICATION_ID = 1
+        private const val WINDOW_DURATION_MS = 1500L
+        var lastCapturedImagePath: String? = null
+    }
+
+    private lateinit var sensorManager: SensorManager
+    private val processor = TeleDriveProcessor()
+    private val ecoScoreEngine = EcoScoreEngine()
+    private val rideSessionManager = RideSessionManager()
+    private lateinit var locationService: LocationService
+    private lateinit var dataLogger: DataLogger
+    private val analyzer: DrivingAnalyzer get() = AnalyzerProvider.getAnalyzer()
+
+    private val windowBuffer = mutableListOf<SensorSample>()
+
+    private var ax = 0f; private var ay = 0f; private var az = 0f
+    private var gx = 0f; private var gy = 0f; private var gz = 0f
+
+    private var lastCaptureTime = 0L
+    private var lastEventTime = 0L
+    private val EVENT_COOLDOWN = 3000L
+
+    private val debugLogs = ArrayList<String>()
+
+    override fun onCreate() {
+        super.onCreate()
+
+        locationService = LocationService(this)
+
+        locationService.startTracking(
+            onDistanceUpdate = { distance ->
+                rideSessionManager.updateDistance(distance)
+            },
+            onSpeedUpdate = { speed ->
+                // Optional: you can log or ignore
+                Log.d("SERVICE_SPEED", "speed=$speed")
+            }
+        )
+        rideSessionManager.startRide()
+        dataLogger = DataLogger(this)
+
+        createNotificationChannel()
+        startForeground(NOTIFICATION_ID, buildNotification())
+
+        sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
+
+        sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)?.let {
+            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME)
+        }
+
+        sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)?.let {
+            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME)
+        }
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
+
+    override fun onDestroy() {
+        val session = rideSessionManager.endRide()
+
+        session?.let {
+            val trip = TripSummary(
+                score = it.finalScore,
+                distance = it.distanceKm,
+                duration = it.rideDuration,
+                harshAccel = it.harshAccelerationCount,
+                harshBrake = it.harshBrakingCount,
+                instability = it.unstableRideCount,
+                timestamp = System.currentTimeMillis()
+            )
+
+            TripStorage.save(this, trip)
+
+            val fuelUsed = ecoScoreEngine.getFinalFuelConsumption(it.distanceKm)
+            val moneyLost = ecoScoreEngine.getFinancialLoss(105.0f)
+
+            val intent = Intent(this, RideSummaryActivity::class.java).apply {
+                putExtra("score", it.finalScore)
+                putExtra("distance", it.distanceKm)
+                putExtra("fuelUsed", fuelUsed)
+                putExtra("moneyLost", moneyLost)
+                putExtra("harshAccel", it.harshAccelerationCount)
+                putExtra("harshBrake", it.harshBrakingCount)
+                putExtra("instability", it.unstableRideCount)
+                putExtra("imagePath", lastCapturedImagePath ?: RideSessionManager.lastEventImagePath)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+
+            startActivity(intent)
+            sendSummaryNotification(it.finalScore, it.distanceKm)
+        }
+
+        sensorManager.unregisterListener(this)
+        try { locationService.stopTracking() } catch (_: Exception) {}
+        super.onDestroy()
+    }
+
+    private fun appendLogToFile(log: String) {
+        try {
+            val file = File(getExternalFilesDir(null), "ride_logs.csv")
+
+            if (!file.exists()) {
+                file.writeText("timestamp,speed,peak,min,std,gyro,event\n")
+            }
+
+            file.appendText(log + "\n")
+
+        } catch (e: Exception) {
+            Log.e("CSV_ERROR", "Failed", e)
+        }
+    }
+
+    override fun onBind(intent: Intent?): IBinder? = null
+
+    override fun onSensorChanged(event: SensorEvent) {
+        val now = System.currentTimeMillis()
+
+        when (event.sensor.type) {
+            Sensor.TYPE_LINEAR_ACCELERATION -> {
+                ax = event.values[0]; ay = event.values[1]; az = event.values[2]
+            }
+            Sensor.TYPE_GYROSCOPE -> {
+                gx = event.values[0]; gy = event.values[1]; gz = event.values[2]
+            }
+        }
+
+        val heading = locationService.getHeading()
+
+        windowBuffer.add(SensorSample(now, ax, ay, az, gx, gy, gz, heading))
+
+        if (windowBuffer.isNotEmpty()) {
+            val duration = now - windowBuffer.first().timestamp
+            if (duration >= WINDOW_DURATION_MS) {
+                processWindow(ArrayList(windowBuffer))
+
+                val cutOff = now - (WINDOW_DURATION_MS - 500L)
+                windowBuffer.removeAll { it.timestamp < cutOff }
+            }
+        }
+    }
+
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+
+    private fun processWindow(window: List<SensorSample>) {
+
+        val features = processor.extractFeatures(window)
+        val speed = locationService.getCurrentSpeed()
+        val now = System.currentTimeMillis()
+
+        // ✅ STEP 1: MAIN ANALYZER
+        val analyzedEvent = analyzer.analyze(features, speed)
+
+        // ✅ STEP 2: FALLBACK (WITH SPEED FILTER)
+        val fallbackType = if (speed > 22f) {
+            when {
+                features.peakForwardAccel > 3.2f ->
+                    DrivingEventType.HARSH_ACCELERATION
+
+                features.minForwardAccel < -6.0f ->
+                    DrivingEventType.HARSH_BRAKING
+
+                features.stdAccel > 3.2f ->
+                    DrivingEventType.UNSTABLE_RIDE
+
+                else -> DrivingEventType.NORMAL
+            }
+        } else {
+            DrivingEventType.NORMAL
+        }
+        val finalType = if (analyzedEvent.type != DrivingEventType.NORMAL) {
+            analyzedEvent.type
+        } else {
+
+            // 🔥 BUFFER ZONE (TIGHTENED - BASED ON LOGS)
+            if (features.minForwardAccel in -5.5f..-4.5f) {
+                DrivingEventType.NORMAL
+            }
+            // 🔥 INSTABILITY NOISE FILTER
+            if (features.stdAccel in 2.5f..3.2f) {
+                DrivingEventType.NORMAL
+            }
+            else {
+                fallbackType
+            }
+        }
+        // ✅ FIX 4: FINAL SAFETY FILTER (ADD HERE)
+        val safeFinalType = if (speed < 22f) {
+            DrivingEventType.NORMAL
+        } else {
+            finalType
+        }
+        val finalEvent = DrivingEvent(
+            safeFinalType,
+            when (safeFinalType) {
+                DrivingEventType.HARSH_ACCELERATION -> features.peakForwardAccel
+                DrivingEventType.HARSH_BRAKING -> kotlin.math.abs(features.minForwardAccel)
+                DrivingEventType.UNSTABLE_RIDE -> features.stdAccel
+                else -> 0f
+            }
+        )
+        val log = "${System.currentTimeMillis()}," +
+                "$speed," +
+                "${features.peakForwardAccel}," +
+                "${features.minForwardAccel}," +
+                "${features.stdAccel}," +
+                "${features.meanGyro}," +
+                "${finalEvent.type}"
+
+        appendLogToFile(log)
+
+        Log.d("CSV_WRITE", log)
+
+        // ✅ STEP 4: COOLDOWN CONTROL
+        val allowUpdate = when {
+            finalEvent.type == DrivingEventType.NORMAL -> true
+            now - lastEventTime > EVENT_COOLDOWN -> true
+            else -> false
+        }
+
+        if (allowUpdate) {
+
+            if (finalEvent.type != DrivingEventType.NORMAL) {
+                lastEventTime = now
+            }
+
+            // ✅ ONLY PLACE UI IS UPDATED
+            LiveDataBus.listener?.invoke(
+                finalEvent.type.name,
+                speed,
+                features.stdAccel
+            )
+
+            updateNotification(finalEvent.type.name, speed)
+        }
+
+        // ✅ DEBUG (KEEP THIS)
+        Log.d(
+            "FINAL_PIPELINE",
+            "spd=$speed peak=${features.peakForwardAccel} min=${features.minForwardAccel} std=${features.stdAccel} -> ${finalEvent.type}"
+        )
+
+        // ✅ STEP 5: SESSION + SCORE
+        if (finalEvent.type != DrivingEventType.NORMAL) {
+
+            val scoreImpact = ecoScoreEngine.processEvent(finalEvent)
+
+            rideSessionManager.processEvent(finalEvent)
+            rideSessionManager.updateScore(scoreImpact)
+
+            val isDangerous = when (finalEvent.type) {
+                DrivingEventType.HARSH_BRAKING -> true
+                DrivingEventType.HARSH_ACCELERATION -> finalEvent.severity > 2.5f
+                DrivingEventType.UNSTABLE_RIDE -> finalEvent.severity > 3.0f
+                else -> false
+            }
+
+            if (isDangerous && (now - lastCaptureTime > 15000L)) {
+                lastCaptureTime = now
+
+                val intent = Intent(
+                    this,
+                    com.teledrive.app.camera.CameraControllerActivity::class.java
+                ).apply {
+                    putExtra("event_type", finalEvent.type.name)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION)
+                }
+
+                startActivity(intent)
+            }
+        }
+
+        // ✅ STEP 6: ML LOGGING
+        val label = when (finalEvent.type) {
+            DrivingEventType.HARSH_ACCELERATION -> 1
+            DrivingEventType.HARSH_BRAKING -> 2
+            DrivingEventType.UNSTABLE_RIDE -> 3
+            else -> 0
+        }
+
+        dataLogger.logWindow(window, label)
+    }
+    // ---------------- NOTIFICATIONS ----------------
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                "Ride Insights",
+                NotificationManager.IMPORTANCE_HIGH
+            )
+            getSystemService(NotificationManager::class.java)
+                .createNotificationChannel(channel)
+        }
+    }
+
+    private fun buildNotification(event: String = "NORMAL", speed: Float = 0f, loss: Float = 0f): Notification {
+        val intent = Intent(this, com.teledrive.app.LiveTripActivity::class.java)
+
+        val pendingIntent = PendingIntent.getActivity(
+            this, 0, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val text = if (event == "NORMAL") {
+            "Speed: ${speed.toInt()} km/h"
+        } else {
+            event
+        }
+
+        return NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle("TeleDrive Active")
+            .setContentText(text)
+            .setSmallIcon(android.R.drawable.ic_menu_compass)
+            .setContentIntent(pendingIntent)
+            .setOngoing(true)
+            .build()
+    }
+
+    private fun updateNotification(event: String, speed: Float) {
+        val manager = getSystemService(NotificationManager::class.java)
+        manager.notify(NOTIFICATION_ID, buildNotification(event, speed))
+    }
+
+    private fun sendSummaryNotification(score: Int, distance: Float) {
+        val intent = Intent(this, RideSummaryActivity::class.java)
+
+        val pendingIntent = PendingIntent.getActivity(
+            this, 1, intent, PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle("Ride Summary")
+            .setContentText("Score: $score | ${"%.1f".format(distance)} km")
+            .setSmallIcon(android.R.drawable.ic_menu_report_image)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .build()
+
+        getSystemService(NotificationManager::class.java)
+            .notify(2, notification)
+    }
+}
+</file>
+
+<file path="com/teledrive/app/TripHistory/TripStorage.kt">
+package com.teledrive.app.TripHistory
+
+import android.content.Context
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+
+object TripStorage {
+
+    private const val PREF_NAME = "trip_history"
+    private const val KEY = "trips"
+
+    fun save(context: Context, trip: TripSummary) {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val gson = Gson()
+
+        val list = getAll(context).toMutableList()
+        list.add(0, trip)
+
+        val json = gson.toJson(list)
+        prefs.edit().putString(KEY, json).apply()
+    }
+
+    fun getAll(context: Context): List<TripSummary> {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val json = prefs.getString(KEY, null) ?: return emptyList()
+
+        val type = object : TypeToken<List<TripSummary>>() {}.type
+        return Gson().fromJson(json, type)
+    }
+}
+</file>
+
+<file path="com/teledrive/app/TripHistory/TripSummary.kt">
+package com.teledrive.app.TripHistory
+
+data class TripSummary(
+    val score: Int,
+    val distance: Float,
+    val duration: Long,
+    val harshAccel: Int,
+    val harshBrake: Int,
+    val instability: Int,
+    val timestamp: Long
+)
+</file>
+
+<file path="com/teledrive/app/ui/theme/Color.kt">
+package com.teledrive.app.ui.theme
+
+import androidx.compose.ui.graphics.Color
+
+val Purple80 = Color(0xFFD0BCFF)
+val PurpleGrey80 = Color(0xFFCCC2DC)
+val Pink80 = Color(0xFFEFB8C8)
+
+val Purple40 = Color(0xFF6650a4)
+val PurpleGrey40 = Color(0xFF625b71)
+val Pink40 = Color(0xFF7D5260)
+</file>
+
+<file path="com/teledrive/app/ui/theme/Theme.kt">
+package com.teledrive.app.ui.theme
+
+import android.app.Activity
+import android.os.Build
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
+
+private val DarkColorScheme = darkColorScheme(
+    primary = Purple80,
+    secondary = PurpleGrey80,
+    tertiary = Pink80
+)
+
+private val LightColorScheme = lightColorScheme(
+    primary = Purple40,
+    secondary = PurpleGrey40,
+    tertiary = Pink40
+
+    /* Other default colors to override
+    background = Color(0xFFFFFBFE),
+    surface = Color(0xFFFFFBFE),
+    onPrimary = Color.White,
+    onSecondary = Color.White,
+    onTertiary = Color.White,
+    onBackground = Color(0xFF1C1B1F),
+    onSurface = Color(0xFF1C1B1F),
+    */
+)
+
+@Composable
+fun TeleDriveTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    // Dynamic color is available on Android 12+
+    dynamicColor: Boolean = true,
+    content: @Composable () -> Unit
+) {
+    val colorScheme = when {
+        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            val context = LocalContext.current
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+
+        darkTheme -> DarkColorScheme
+        else -> LightColorScheme
+    }
+
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = Typography,
+        content = content
+    )
+}
+</file>
+
+<file path="com/teledrive/app/ui/theme/Type.kt">
+package com.teledrive.app.ui.theme
+
+import androidx.compose.material3.Typography
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+
+// Set of Material typography styles to start with
+val Typography = Typography(
+    bodyLarge = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 16.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.5.sp
+    )
+    /* Other default text styles to override
+    titleLarge = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 22.sp,
+        lineHeight = 28.sp,
+        letterSpacing = 0.sp
+    ),
+    labelSmall = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Medium,
+        fontSize = 11.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.5.sp
+    )
+    */
+)
+</file>
+
+</files>
