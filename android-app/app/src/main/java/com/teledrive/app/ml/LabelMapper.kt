@@ -26,12 +26,16 @@ class LabelMapper(context: Context) {
                 val jsonObject = JSONObject(trimmedJson)
                 val map = mutableMapOf<Int, String>()
                 val keys = jsonObject.keys()
+
                 while (keys.hasNext()) {
                     val key = keys.next()
-                    val index = jsonObject.getInt(key)
-                    map[index] = key
+                    val index = key.toInt()          // key = "0"
+                    val label = jsonObject.getString(key) // value = "NORMAL"
+                    map[index] = label
                 }
+
                 val maxIndex = map.keys.maxOrNull() ?: -1
+
                 for (i in 0..maxIndex) {
                     temp.add(map[i] ?: "UNKNOWN")
                 }
@@ -48,6 +52,11 @@ class LabelMapper(context: Context) {
             labels[index]
         } else {
             "UNKNOWN"
+        }
+    }
+    fun debugLabels() {
+        for (i in labels.indices) {
+            android.util.Log.d("LABEL_TEST", "Index $i -> ${labels[i]}")
         }
     }
 }

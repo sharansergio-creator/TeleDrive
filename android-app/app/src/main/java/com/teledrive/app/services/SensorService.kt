@@ -14,10 +14,14 @@ import com.teledrive.app.analysis.DrivingAnalyzer
 import com.teledrive.app.triphistory.TripSummary
 import com.teledrive.app.triphistory.TripStorage
 import com.teledrive.app.ml.DataLogger
+import com.teledrive.app.ml.MLTrainingLogger
+import com.teledrive.app.ml.WindowLabeler
 import java.io.File
 import com.teledrive.app.ml.ModelHelper
 import com.teledrive.app.ml.Scaler
 import com.teledrive.app.ml.LabelMapper
+import kotlin.text.compareTo
+import kotlin.times
 
 
 enum class DetectionMode {
@@ -33,10 +37,20 @@ class SensorService : Service(), SensorEventListener {
         const val CHANNEL_ID = "teledrive_foreground"
         const val NOTIFICATION_ID = 1
         private const val WINDOW_DURATION_MS = 1000L
+        private const val ML_WINDOW_SIZE = 50  // Fixed window size for ML
         var lastCapturedImagePath: String? = null
 
         var currentMode: DetectionMode = DetectionMode.RULE_BASED
+
+        /**
+         * Training mode flag - when true:
+         * - Logs NORMAL samples that would normally be filtered
+         * - Uses true event labels (not cooldown-suppressed)
+         * - Ensures consistent window sizes for ML
+         */
+        var ML_TRAINING_MODE = true  // Set to true for data collection rides
     }
+   
 
     private lateinit var sensorManager: SensorManager
     private val processor = TeleDriveProcessor()
@@ -44,6 +58,8 @@ class SensorService : Service(), SensorEventListener {
     private val rideSessionManager = RideSessionManager()
     private lateinit var locationService: LocationService
     private lateinit var dataLogger: DataLogger
+    private lateinit var mlTrainingLogger: MLTrainingLogger
+    private lateinit var windowLabeler: WindowLabeler
     private lateinit var modelHelper: ModelHelper
     private lateinit var scaler: Scaler
     private lateinit var labelMapper: LabelMapper
@@ -51,7 +67,7 @@ class SensorService : Service(), SensorEventListener {
     private val CONFIDENCE_THRESHOLD = 0.7f
     private val SMOOTHING_WINDOW = 5
     private val predictionBuffer = ArrayDeque<String>()
-    private val analyzer: DrivingAnalyzer get() = AnalyzerProvider.getAnalyzer()
+    private val analyzer: DrivingAnalyzer get() = AnalyzerProvider.getAnalyzer(this)
 
     private val windowBuffer = mutableListOf<SensorSample>()
 
@@ -61,6 +77,18 @@ class SensorService : Service(), SensorEventListener {
     private var lastCaptureTime = 0L
     private var lastEventTime = 0L
     private val EVENT_COOLDOWN = 2000L
+
+    private var unstableCounter = 0
+
+    // ---- Event Persistence & State Machine ----
+    // Prevents single-window false positives and UI flickering between states.
+    private val EVENT_CONFIRM_THRESHOLD = 2     // Consecutive event windows required to ENTER event state
+    private val NORMAL_CONFIRM_THRESHOLD = 3    // Consecutive NORMAL windows required to EXIT event state
+    private var consecutiveEventCounter = 0
+    private var consecutiveNormalCounter = 0
+    private var lastDetectedEvent: DrivingEventType = DrivingEventType.NORMAL
+    private var currentState: DrivingEventType = DrivingEventType.NORMAL
+    private var lastStableState: DrivingEventType = DrivingEventType.NORMAL
 
     private var lastTip: String? = null
 
@@ -82,6 +110,8 @@ class SensorService : Service(), SensorEventListener {
         )
         rideSessionManager.startRide()
         dataLogger = DataLogger(this)
+        mlTrainingLogger = MLTrainingLogger(this)
+        windowLabeler = WindowLabeler()
 
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, buildNotification())
@@ -98,6 +128,7 @@ class SensorService : Service(), SensorEventListener {
         modelHelper = ModelHelper(this)
         scaler = Scaler(this)
         labelMapper = LabelMapper(this)
+        labelMapper.debugLabels()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
@@ -143,6 +174,22 @@ Thread.sleep(500)
 
         sensorManager.unregisterListener(this)
         try { locationService.stopTracking() } catch (_: Exception) {}
+        
+        // Close ML training logger and log stats
+// Close ML training logger and log comprehensive stats
+        try {
+            val stats = mlTrainingLogger.getStats()
+            Log.d("ML_TRAINING", "═══════════════════════════════════════")
+            Log.d("ML_TRAINING", "       TRAINING DATA SUMMARY           ")
+            Log.d("ML_TRAINING", "═══════════════════════════════════════")
+            Log.d("ML_TRAINING", stats)
+            Log.d("ML_TRAINING", "File: ${mlTrainingLogger.file.absolutePath}")
+            Log.d("ML_TRAINING", "Training mode was: $ML_TRAINING_MODE")
+            Log.d("ML_TRAINING", "═══════════════════════════════════════")
+            mlTrainingLogger.close()
+        } catch (e: Exception) {
+            Log.e("ML_TRAINING", "Error closing logger", e)
+        }
         super.onDestroy()
     }
 
@@ -176,8 +223,10 @@ Thread.sleep(500)
         }
 
         val heading = locationService.getHeading()
+        val currentSpeed = locationService.getCurrentSpeed()
 
-        windowBuffer.add(SensorSample(now, ax, ay, az, gx, gy, gz, heading))
+        val sample = SensorSample(now, ax, ay, az, gx, gy, gz, heading)
+        windowBuffer.add(sample)
 
         if (windowBuffer.isNotEmpty()) {
             val duration = now - windowBuffer.first().timestamp
@@ -190,6 +239,50 @@ Thread.sleep(500)
         }
     }
 
+    /**
+     * Unified training data logger
+     * 
+     * Logs the EXACT window that was analyzed with the EXACT label determined.
+     * This ensures perfect synchronization between sensor data and labels.
+     * 
+     * Output: timestamp, ax, ay, az, gx, gy, gz, speed, label
+     */
+    private fun logTrainingWindow(
+        window: List<SensorSample>,
+        eventType: DrivingEventType,
+        speed: Float
+    ) {
+        if (!ML_TRAINING_MODE) return
+        if (window.isEmpty()) return
+
+        val windowToLog = if (window.size < ML_WINDOW_SIZE) {
+            Log.d(TAG, "Padding window: ${window.size} → $ML_WINDOW_SIZE")
+
+            val padded = window.toMutableList()
+            while (padded.size < ML_WINDOW_SIZE) {
+                padded.add(padded.last())
+            }
+            padded
+        } else {
+            window.takeLast(ML_WINDOW_SIZE)
+        }
+
+        mlTrainingLogger.logWindow(
+            window = windowToLog,
+            speed = speed,
+            eventType = eventType
+        )
+
+
+        if (eventType != DrivingEventType.NORMAL) {
+            Log.d(
+                "ML_TRAINING",
+
+
+                "✅ Logged EVENT: ${eventType.name}, samples=${windowToLog.size}"
+            )
+        }
+    }
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
     private fun processWindow(window: List<SensorSample>) {
@@ -199,9 +292,18 @@ Thread.sleep(500)
         val now = System.currentTimeMillis()
 
         // 🔥 ENERGY (used for ML filtering only)
-        val totalEnergy = (features.stdAccel*1.2f) + features.meanGyro
+// 🔥 ENERGY (used for ML filtering only)
+        val totalEnergy = (features.stdAccel * 1.2f) + features.meanGyro
 
-        if(totalEnergy < 1.2f) return
+        if (totalEnergy < 1.0f) {
+            // In training mode: still log these as NORMAL samples
+            // These are valuable for teaching the model what "not moving" looks like
+            if (ML_TRAINING_MODE && window.size >= ML_WINDOW_SIZE) {
+                logTrainingWindow(window, DrivingEventType.NORMAL, speed)
+                Log.d("ML_TRAINING", "📝 Logged low-energy NORMAL window")
+            }
+            return
+        }
 
         // ================= SPEED-AWARE THRESHOLDS =================
         // 🚴 Bike detection needs different thresholds at different speeds
@@ -210,8 +312,9 @@ Thread.sleep(500)
         val isHighSpeed = speed > 30f     // Fast cycling
 
         // Dynamic thresholds based on speed (higher speed = more tolerance)
-        val minSpeedForEvents = 12f       // ⬆️ Raised from 5f - ignore events below 12 km/h
-        val minEnergyForEvents = if (isHighSpeed) 1.5f else 2.5f  // High speed needs less energy threshold
+        val minSpeedForEvents = if (ML_TRAINING_MODE) 0f else 12f       // ⬆️ Raised from 5f - ignore events below 12 km/h
+        val minEnergyForEvents =
+            if (isHighSpeed) 1.5f else 2.5f  // High speed needs less energy threshold
 
         // ================= ML PREDICTION =================
 
@@ -321,28 +424,65 @@ Buffer = ${predictionBuffer.joinToString()}
         }
 
         val instabilityThreshold = when {
-            isHighSpeed -> 1.8f    // ⬇️ Lower at high speed
-            isMediumSpeed -> 2.2f  // Standard
-            else -> 3.0f           // ⬆️ Much stricter at low speed to avoid hand shake
+            isHighSpeed -> 1.0f    // ⬇️ Lower at high speed
+            isMediumSpeed -> 1.2f  // Standard
+            else -> 1.5f           // ⬆️ Much stricter at low speed to avoid hand shake
         }
 
+        // ================= UNSTABLE DETECTION (COUNTER-BASED) =================
+        // Detect continuous vibration, not spikes
+        // Must NOT override acceleration/braking events
+        
+        val isUnstableCandidate =
+            features.stdAccel in instabilityThreshold..4.0f &&
+            totalEnergy > 1.0f &&
+            features.meanGyro > 0.5f
+
+        // Check acceleration/braking conditions FIRST (they have priority)
+        val isAccelerationDetected = features.peakForwardAccel > accelThreshold && features.stdAccel > 1.5f
+        val isBrakingDetected = features.minForwardAccel < brakeThreshold && features.stdAccel > 1.5f
+
+        // Update unstable counter with proper reset logic
+        when {
+            // Reset counter if acceleration or braking is detected (they take priority)
+            isAccelerationDetected || isBrakingDetected -> {
+                unstableCounter = 0
+            }
+            // Increment if unstable candidate
+            isUnstableCandidate -> {
+                unstableCounter++
+            }
+            // Reset if not a candidate
+            else -> {
+                unstableCounter = 0
+            }
+        }
+
+        // Require 2+ consecutive windows for confirmation (temporal smoothing)
+        val isConfirmedUnstable = unstableCounter >= 2
+
+        // Debug logging for unstable detection
+        Log.d("UNSTABLE_DEBUG",
+            "std=${features.stdAccel}, gyro=${features.meanGyro}, energy=$totalEnergy, " +
+            "counter=$unstableCounter, candidate=$isUnstableCandidate, confirmed=$isConfirmedUnstable"
+        )
+
+        // ================= RULE TYPE DETERMINATION =================
+        // Priority order: speed → acceleration → braking → unstable → normal
         val ruleType = when {
-            // 🐢 Block all events at very low speed
+            // 1. Speed check first
             speed < minSpeedForEvents -> DrivingEventType.NORMAL
 
-            features.peakForwardAccel > accelThreshold &&
-                    features.stdAccel > 1.5f ->
-                DrivingEventType.HARSH_ACCELERATION
+            // 2. Acceleration (highest priority event)
+            isAccelerationDetected -> DrivingEventType.HARSH_ACCELERATION
 
-            features.minForwardAccel < brakeThreshold &&
-                    features.stdAccel > 1.5f ->
-                DrivingEventType.HARSH_BRAKING
+            // 3. Braking (second priority)
+            isBrakingDetected -> DrivingEventType.HARSH_BRAKING
 
-            features.stdAccel > instabilityThreshold &&
-                    totalEnergy > minEnergyForEvents &&
-                    !isLikelyHandMovement ->  // 🖐️ Block hand movement
-                DrivingEventType.UNSTABLE_RIDE
+            // 4. Unstable (only if confirmed via counter)
+            isConfirmedUnstable -> DrivingEventType.UNSTABLE_RIDE
 
+            // 5. Normal
             else -> DrivingEventType.NORMAL
         }
 
@@ -386,19 +526,78 @@ Buffer = ${predictionBuffer.joinToString()}
             }
         }
 
-        // ================= COOLDOWN =================
-
+        // ================= COOLDOWN (SIDE EFFECTS ONLY) =================
+        // isCooldownActive is used ONLY to gate camera/scoring below.
+        // It does NOT suppress event detection or the displayed UI state anymore.
         val isCooldownActive = (now - lastEventTime) < EVENT_COOLDOWN
 
-        val finalEventType = if (isCooldownActive) {
-            DrivingEventType.NORMAL
-        } else {
-            finalType
+        // Training label: TRUE detected event — no suppression, written to ML CSV
+        val trainingLabel = finalType
+
+        // ================= EVENT PERSISTENCE + STATE MACHINE =================
+        // ENTER event state: require EVENT_CONFIRM_THRESHOLD consecutive windows of the same event.
+        // EXIT  event state: require NORMAL_CONFIRM_THRESHOLD consecutive NORMAL windows (hysteresis).
+        // This eliminates single-window false positives and flickering back to NORMAL.
+        when {
+            finalType != DrivingEventType.NORMAL -> {
+                if (finalType == lastDetectedEvent) {
+                    // Same event type keeps accumulating
+                    consecutiveEventCounter++
+                } else {
+                    // New event type detected — restart confirmation from 1
+                    consecutiveEventCounter = 1
+                    lastDetectedEvent = finalType
+                }
+                consecutiveNormalCounter = 0
+            }
+            else -> {
+                consecutiveNormalCounter++
+                // Only clear the event counter once enough NORMAL windows are observed
+                if (consecutiveNormalCounter >= NORMAL_CONFIRM_THRESHOLD) {
+                    consecutiveEventCounter = 0
+                    lastDetectedEvent = DrivingEventType.NORMAL
+                }
+            }
         }
 
-        if (finalEventType != DrivingEventType.NORMAL) {
-            lastEventTime = now
+        // Event is confirmed only after N consecutive same-type detections
+        val isEventConfirmed = finalType != DrivingEventType.NORMAL &&
+                consecutiveEventCounter >= EVENT_CONFIRM_THRESHOLD
+
+        // Determine UI state with hysteresis:
+        //   - Enter event state only when confirmed
+        //   - Hold event state until enough NORMAL windows pass (prevents flicker back)
+        val confirmedEventType = when {
+            isEventConfirmed -> finalType
+            currentState != DrivingEventType.NORMAL &&
+                    consecutiveNormalCounter < NORMAL_CONFIRM_THRESHOLD -> currentState // Hold current
+            else -> DrivingEventType.NORMAL
         }
+
+        // Advance the state machine
+        lastStableState = currentState
+        currentState = confirmedEventType
+
+        // finalEventType is driven purely by the state machine — NOT by raw cooldown suppression.
+        // lastEventTime is updated inside the allowUpdate block below so the very first
+        // confirmed event always satisfies the cooldown check and reaches the UI.
+        val finalEventType = confirmedEventType
+
+        // Structured detection-vs-UI log for easy debugging
+        Log.d("STATE_MACHINE",
+            "DETECTED=${finalType.name} | " +
+            "CONFIRMED=$isEventConfirmed | " +
+            "COUNTER=$consecutiveEventCounter/$EVENT_CONFIRM_THRESHOLD | " +
+            "NORMAL_CTR=$consecutiveNormalCounter/$NORMAL_CONFIRM_THRESHOLD | " +
+            "STATE=${currentState.name}"
+        )
+
+        if (ML_TRAINING_MODE) {
+            Log.d("ML_TRAINING",
+                "training=$trainingLabel, ui=$finalEventType, cooldown=$isCooldownActive")
+        }
+
+
 
         // ================= EVENT =================
 
@@ -422,8 +621,8 @@ Buffer = ${predictionBuffer.joinToString()}
                 "${features.meanGyro}," +
                 "${finalEvent.type}"
 
-        appendLogToFile(log)
-        Log.d("CSV_WRITE", log)
+       // appendLogToFile(log)
+       // Log.d("CSV_WRITE", log)
 
         // ================= UI =================
 
@@ -458,13 +657,16 @@ Buffer = ${predictionBuffer.joinToString()}
 
         // ================= DEBUG =================
 
-        Log.d("FINAL_PIPELINE",
+        Log.d(
+            "FINAL_PIPELINE",
             "MODE=$currentMode EVENT=${finalEvent.type} spd=$speed std=${features.stdAccel}"
         )
 
         // ================= SCORE =================
 
-        if (finalEvent.type != DrivingEventType.NORMAL) {
+        // Side effects (camera + score) are gated by cooldown to preserve original frequency.
+        // State machine ensures UI is stable; cooldown ensures scoring isn't applied every window.
+        if (finalEvent.type != DrivingEventType.NORMAL && !isCooldownActive) {
 
             // 📸 CAPTURE IMAGE
             if (System.currentTimeMillis() - lastCaptureTime > 3000) {
@@ -487,16 +689,23 @@ Buffer = ${predictionBuffer.joinToString()}
             rideSessionManager.processEvent(finalEvent)
             rideSessionManager.updateScore(scoreImpact)
         }
-        // ================= ML TRAINING =================
 
-        val label = when (finalEvent.type) {
-            DrivingEventType.HARSH_ACCELERATION -> 1
-            DrivingEventType.HARSH_BRAKING -> 2
-            DrivingEventType.UNSTABLE_RIDE -> 3
-            else -> 0
-        }
+// ================= ML TRAINING DATA LOGGING =================
+//
+// Single unified logging pipeline:
+// - Uses the EXACT window that was just analyzed
+// - Uses the TRUE training label (before cooldown suppression)
+// - Ensures perfect synchronization between data and labels
+//
+// Output: timestamp, ax, ay, az, gx, gy, gz, speed, label
+// Labels: 0=NORMAL, 1=HARSH_ACCELERATION, 2=HARSH_BRAKING, 3=UNSTABLE_RIDE
 
-        dataLogger.logWindow(window, label)
+// Log using unified function with TRUE training label
+        logTrainingWindow(window, trainingLabel, speed)
+
+// Keep WindowLabeler update for other purposes (can be removed if unused)
+        windowLabeler.onEventDetected(finalEvent.type)
+
     }
     // ================= ML INPUT BUILDER =================
     private fun buildModelInput(window: List<SensorSample>): Array<Array<FloatArray>> {

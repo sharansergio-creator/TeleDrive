@@ -1,6 +1,6 @@
 {
-    "HARSH_ACCELERATION": 0,
-    "HARSH_BRAKING": 1,
-    "NORMAL": 2,
-    "UNSTABLE_RIDE": 3
+  "0": "NORMAL",
+  "1": "HARSH_ACCELERATION",
+  "2": "HARSH_BRAKING",
+  "3": "UNSTABLE_RIDE"
 }

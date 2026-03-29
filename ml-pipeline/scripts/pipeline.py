@@ -1,31 +1,31 @@
-from pathlib import Path
+# ml-pipeline/scripts/pipeline.py
+
 import subprocess
-import sys
 
 
-ROOT = Path(__file__).resolve().parents[1]
-SCRIPTS_DIR = ROOT / "scripts"
+def run_step(command):
+    print(f"\n🔹 Running: {command}")
+    result = subprocess.run(command, shell=True)
 
-PIPELINE_STEPS = [
-    SCRIPTS_DIR / "clean_data.py",
-    SCRIPTS_DIR / "create_sequences.py",
-    SCRIPTS_DIR / "train_model.py",
-    SCRIPTS_DIR / "convert_to_tflite.py",
-]
+    if result.returncode != 0:
+        raise RuntimeError(f"❌ Failed at: {command}")
 
 
-def run_step(script_path: Path) -> None:
-    print(f"\n=== Running {script_path.name} ===")
-    subprocess.run([sys.executable, str(script_path)], check=True, cwd=ROOT)
+def main():
+    steps = [
+        "python scripts/clean_data.py",
+        "python scripts/create_scaler.py",
+        "python scripts/create_sequences.py",
+        "python scripts/train_model.py",
+        "python scripts/convert_to_tflite.py",
+        "python scripts/export_scaler.py",
+        "python scripts/export_label.py"
+    ]
 
-
-def main() -> None:
-    for step in PIPELINE_STEPS:
-        if not step.exists():
-            raise FileNotFoundError(f"Missing pipeline step: {step}")
+    for step in steps:
         run_step(step)
 
-    print("\nPipeline completed successfully.")
+    print("\n✅ Pipeline completed successfully!")
 
 
 if __name__ == "__main__":
