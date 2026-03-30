@@ -196,7 +196,10 @@ fun PremiumLiveTripScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Column {
+                    // 🚨 FIX: Added weight(1f) to constrain width and prevent overflow
+                    // Problem: Long event text + tip pushed STABILITY indicator off-screen
+                    // Solution: Left column gets available space but won't exceed it
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
                             "RIDE STATUS",
                             color = Color.White.copy(0.4f),
@@ -224,7 +227,11 @@ fun PremiumLiveTripScreen(
                             )
                         }
                     }
+                    
+                    Spacer(modifier = Modifier.width(12.dp))  // ⬅️ Added spacing
                     Box(modifier = Modifier.width(1.dp).height(30.dp).background(Color.White.copy(0.1f)))
+                    Spacer(modifier = Modifier.width(12.dp))  // ⬅️ Added spacing
+                    
                     Column(horizontalAlignment = Alignment.End) {
                         Text("STABILITY", color = Color.White.copy(0.4f), fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
                         Text("%.2f".format(std), color = accentColor, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)

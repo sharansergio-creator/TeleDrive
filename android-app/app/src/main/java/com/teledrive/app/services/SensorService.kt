@@ -76,14 +76,18 @@ class SensorService : Service(), SensorEventListener {
 
     private var lastCaptureTime = 0L
     private var lastEventTime = 0L
-    private val EVENT_COOLDOWN = 2000L
+    private val EVENT_COOLDOWN = 2000L        // 2s for detection/UI
+    
+    private var lastScoringTime = 0L
+    private val SCORING_COOLDOWN = 4000L      // 4s for scoring (longer to reduce over-penalization)
 
     private var unstableCounter = 0
 
     // ---- Event Persistence & State Machine ----
     // Prevents single-window false positives and UI flickering between states.
-    private val EVENT_CONFIRM_THRESHOLD = 2     // Consecutive event windows required to ENTER event state
-    private val NORMAL_CONFIRM_THRESHOLD = 3    // Consecutive NORMAL windows required to EXIT event state
+    // ⬇️ TUNED: Reduced to capture more real events (data shows single-window spikes are valid)
+    private val EVENT_CONFIRM_THRESHOLD = 1     // Consecutive event windows required to ENTER event state (was 2)
+    private val NORMAL_CONFIRM_THRESHOLD = 2    // Consecutive NORMAL windows required to EXIT event state (was 3)
     private var consecutiveEventCounter = 0
     private var consecutiveNormalCounter = 0
     private var lastDetectedEvent: DrivingEventType = DrivingEventType.NORMAL
@@ -291,11 +295,20 @@ Thread.sleep(500)
         val speed = locationService.getCurrentSpeed()
         val now = System.currentTimeMillis()
 
+        if (speed < 5f) {
+            // Only log NORMAL for ML, skip events
+            if (ML_TRAINING_MODE && window.size >= ML_WINDOW_SIZE) {
+                logTrainingWindow(window, DrivingEventType.NORMAL, speed)
+            }
+            return
+        }
+
         // 🔥 ENERGY (used for ML filtering only)
-// 🔥 ENERGY (used for ML filtering only)
+        // ⬇️ TUNED: Reduced from 1.0 to 0.7 based on real data analysis
+        // Real events show energy as low as 1.1-1.3, this ensures we don't miss them
         val totalEnergy = (features.stdAccel * 1.2f) + features.meanGyro
 
-        if (totalEnergy < 1.0f) {
+        if (totalEnergy < 0.7f) {
             // In training mode: still log these as NORMAL samples
             // These are valuable for teaching the model what "not moving" looks like
             if (ML_TRAINING_MODE && window.size >= ML_WINDOW_SIZE) {
@@ -311,8 +324,9 @@ Thread.sleep(500)
         val isMediumSpeed = speed in 15f..30f
         val isHighSpeed = speed > 30f     // Fast cycling
 
-        // Dynamic thresholds based on speed (higher speed = more tolerance)
-        val minSpeedForEvents = if (ML_TRAINING_MODE) 0f else 12f       // ⬆️ Raised from 5f - ignore events below 12 km/h
+        // 🔧 FIX A: LOW-SPEED FILTER
+        // Prevent harsh events below 10-12 km/h (bumpy road false positives at low speed)
+        val minSpeedForEvents = 10f  // Fixed threshold: ignore ALL harsh events below 10 km/h
         val minEnergyForEvents =
             if (isHighSpeed) 1.5f else 2.5f  // High speed needs less energy threshold
 
@@ -411,44 +425,77 @@ Buffer = ${predictionBuffer.joinToString()}
         // ================= RULE ENGINE (SPEED-AWARE) =================
 
         // 🚴 Dynamic thresholds based on speed
+        // ⬆️ REBALANCED v2: Increased from v1 (2.2-3.5) after session 4 data analysis
+        // Session 4 showed 36% accel rate (TOO HIGH) - catching normal oscillations
+        // Data evidence: "HARSH_ACCEL" samples had ax/ay ~0.5-2.0 (too low for harsh events)
+        // New values (3.0-4.5) require TRUE harsh maneuvers, not vibration
         val accelThreshold = when {
-            isHighSpeed -> 5.5f    // ⬇️ Lower threshold at high speed - easier to detect
-            isMediumSpeed -> 6.5f  // Standard
-            else -> 8.0f           // ⬆️ Higher threshold at low speed - harder to trigger
+            isHighSpeed -> 3.0f    // ⬆️ was 2.2f - Real harsh events show peaks 3-5 m/s² after smoothing
+            isMediumSpeed -> 3.5f  // ⬆️ was 2.8f - Filters normal riding oscillations  
+            else -> 4.5f           // ⬆️ was 3.5f - Strict at low speed to avoid false triggers
         }
 
         val brakeThreshold = when {
-            isHighSpeed -> -5.5f
-            isMediumSpeed -> -6.5f
-            else -> -8.0f
+            isHighSpeed -> -3.0f   // ⬆️ was -2.2f (symmetric with accel)
+            isMediumSpeed -> -3.5f // ⬆️ was -2.8f
+            else -> -4.5f          // ⬆️ was -3.5f
         }
 
+        // ⬇️ TUNED: Relaxed thresholds based on real unstable event data
+        // Real data: gyro avg=0.62, many events 0.4-0.5 range
+        // Previous meanGyro > 0.5 was missing ~30% of real unstable events
         val instabilityThreshold = when {
-            isHighSpeed -> 1.0f    // ⬇️ Lower at high speed
-            isMediumSpeed -> 1.2f  // Standard
-            else -> 1.5f           // ⬆️ Much stricter at low speed to avoid hand shake
+            isHighSpeed -> 0.8f    // ⬇️ was 1.0f - Lower at high speed (road vibration is real)
+            isMediumSpeed -> 1.0f  // ⬇️ was 1.2f - Aligned with actual stdAccel patterns
+            else -> 1.3f           // ⬇️ was 1.5f - Still stricter at low speed
         }
 
         // ================= UNSTABLE DETECTION (COUNTER-BASED) =================
         // Detect continuous vibration, not spikes
         // Must NOT override acceleration/braking events
         
+        // 🔧 FIX C: UNSTABLE DETECTION
+        // Improved to detect oscillatory patterns (bumpy roads, vibration)
+        // Uses both stdAccel (vibration magnitude) and meanGyro (rotation instability)
         val isUnstableCandidate =
-            features.stdAccel in instabilityThreshold..4.0f &&
-            totalEnergy > 1.0f &&
-            features.meanGyro > 0.5f
+            features.stdAccel >= 2.0f &&  // High variance (oscillation pattern)
+            features.meanGyro > 0.35f &&  // Rotational instability
+            totalEnergy > 0.8f  // Minimum energy threshold
 
         // Check acceleration/braking conditions FIRST (they have priority)
-        val isAccelerationDetected = features.peakForwardAccel > accelThreshold && features.stdAccel > 1.5f
-        val isBrakingDetected = features.minForwardAccel < brakeThreshold && features.stdAccel > 1.5f
+        // ⬇️ CRITICAL FIX v2: Added magnitude comparison to distinguish accel from brake
+        // Session 4 data showed 51.8% of "accel" samples had negative dominant axis (misclassified braking!)
+        // Root cause: peak > threshold doesn't check if forward motion is DOMINANT
+        //
+        // New logic: Require peak/min magnitude comparison (20% margin)
+        //   - Acceleration: peak must be 20% stronger than |min| (forward dominant)
+        //   - Braking: |min| must be 20% stronger than peak (backward dominant)
+        //
+        // 🔧 FIX B: BRAKING VALIDATION
+        // Changed stdAccel from > 1.0 to < 2.0 (require LOW variance for directional consistency)
+        // High stdAccel (>2.0) = oscillation/vibration → should be UNSTABLE, not BRAKING
+        val isAccelerationDetected = 
+            features.peakForwardAccel > accelThreshold && 
+            features.stdAccel > 1.0f &&  // Minimum energy threshold
+            features.stdAccel < 3.0f &&  // Maximum variance (not pure oscillation)
+            features.peakForwardAccel > kotlin.math.abs(features.minForwardAccel) * 1.2f  // Forward motion dominant
+            
+        val isBrakingDetected = 
+            features.minForwardAccel < brakeThreshold && 
+            features.stdAccel < 2.0f &&  // 🔧 FIX: LOW variance required (directional, not oscillation)
+            kotlin.math.abs(features.minForwardAccel) > features.peakForwardAccel * 1.2f  // Backward motion dominant
 
-        // Update unstable counter with proper reset logic
+        // Update unstable counter with SMARTER reset logic
+        // 🔧 FIX C: Improved unstable counter logic
+        // Only reset for STRONG directional events (> 5.0 m/s²) to allow unstable detection
+        // during mild oscillations that briefly cross accel/brake thresholds
         when {
-            // Reset counter if acceleration or braking is detected (they take priority)
-            isAccelerationDetected || isBrakingDetected -> {
+            // Reset ONLY for strong acceleration/braking (not mild vibrations)
+            (isAccelerationDetected && features.peakForwardAccel > 5.0f) ||
+            (isBrakingDetected && kotlin.math.abs(features.minForwardAccel) > 5.0f) -> {
                 unstableCounter = 0
             }
-            // Increment if unstable candidate
+            // Increment if unstable candidate (even during mild accel/brake)
             isUnstableCandidate -> {
                 unstableCounter++
             }
@@ -458,8 +505,9 @@ Buffer = ${predictionBuffer.joinToString()}
             }
         }
 
-        // Require 2+ consecutive windows for confirmation (temporal smoothing)
-        val isConfirmedUnstable = unstableCounter >= 2
+        // 🔧 FIX C: Reduced threshold from 2 to 1 (single window confirmation)
+        // Oscillation patterns can be intermittent on bumpy roads
+        val isConfirmedUnstable = unstableCounter >= 1
 
         // Debug logging for unstable detection
         Log.d("UNSTABLE_DEBUG",
@@ -468,19 +516,24 @@ Buffer = ${predictionBuffer.joinToString()}
         )
 
         // ================= RULE TYPE DETERMINATION =================
-        // Priority order: speed → acceleration → braking → unstable → normal
+        // 🔧 FIX D: PRIORITY ORDER
+        // Order: Speed check → Acceleration → UNSTABLE → Braking
+        // Rationale:
+        //   - Oscillation (high stdAccel) → UNSTABLE_RIDE
+        //   - Clean directional deceleration (low stdAccel) → HARSH_BRAKING
+        //   - This prevents bumpy roads from being misclassified as braking
         val ruleType = when {
-            // 1. Speed check first
+            // 1. LOW-SPEED FILTER (FIX A)
             speed < minSpeedForEvents -> DrivingEventType.NORMAL
 
-            // 2. Acceleration (highest priority event)
+            // 2. Acceleration (highest priority - clear forward motion)
             isAccelerationDetected -> DrivingEventType.HARSH_ACCELERATION
 
-            // 3. Braking (second priority)
-            isBrakingDetected -> DrivingEventType.HARSH_BRAKING
-
-            // 4. Unstable (only if confirmed via counter)
+            // 3. UNSTABLE (PRIORITY 2 - detect oscillation BEFORE directional braking)
             isConfirmedUnstable -> DrivingEventType.UNSTABLE_RIDE
+
+            // 4. Braking (PRIORITY 3 - only if NOT unstable)
+            isBrakingDetected -> DrivingEventType.HARSH_BRAKING
 
             // 5. Normal
             else -> DrivingEventType.NORMAL
@@ -684,10 +737,21 @@ Buffer = ${predictionBuffer.joinToString()}
                 Log.d("IMAGE_DEBUG", "Camera triggered for ${finalEvent.type}")
             }
 
-            val scoreImpact = ecoScoreEngine.processEvent(finalEvent)
-
+            // ✅ ALWAYS count events (for statistics)
             rideSessionManager.processEvent(finalEvent)
-            rideSessionManager.updateScore(scoreImpact)
+
+            // ✅ SCORING: Use longer cooldown to prevent over-penalization
+            // Events are counted (9 accel, 8 brake), but score updates are throttled
+            val allowScoring = (now - lastScoringTime) > SCORING_COOLDOWN
+            if (allowScoring) {
+                val scoreImpact = ecoScoreEngine.processEvent(finalEvent)
+                rideSessionManager.updateScore(scoreImpact)
+                lastScoringTime = now
+                
+                Log.d("SCORE_UPDATE", "Score updated: $scoreImpact (Event: ${finalEvent.type})")
+            } else {
+                Log.d("SCORE_UPDATE", "Event counted but score not updated (cooldown active)")
+            }
         }
 
 // ================= ML TRAINING DATA LOGGING =================

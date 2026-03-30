@@ -78,6 +78,10 @@ ml-pipeline/models/**/events.out.tfevents*
 # Processed datasets
 ml-pipeline/data/processed/
 
+*.csv
+*.pkl
+ml-pipeline/data/
+
 # Numpy arrays (large training data)
 *.npy
 
