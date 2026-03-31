@@ -8,7 +8,8 @@ data class SensorSample(
     val gx: Float,
     val gy: Float,
     val gz: Float,
-    val heading:Float
+    val heading:Float,
+    val speed: Float  // GPS speed at sample time
 )
 
 data class FeatureVector(

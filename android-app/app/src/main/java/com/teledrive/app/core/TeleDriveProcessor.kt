@@ -72,31 +72,32 @@ class TeleDriveProcessor {
 // 🔥 dominant axis
             val horizontal = sqrt(lx * lx + ly * ly)
 
-            // 🚨 CRITICAL FIX: Y-AXIS INVERSION
-            // Data analysis (sessions 8-11) shows:
-            //   HARSH_ACCEL: ay avg = -0.10 (NEGATIVE)
-            //   HARSH_BRAKE: ay avg = -0.38 (MORE NEGATIVE)
+            // 🚨 CRITICAL FIX v2: HEADING-AWARE FORWARD ACCELERATION
+            // Previous fix used fixed Y-axis inversion: ly_corrected = -ly
+            // Problem: Assumes consistent phone orientation (not robust)
             //
-            // This indicates:
-            //   1. Phone mounted backwards OR
-            //   2. LINEAR_ACCELERATION sensor Y-axis is inverted
+            // Data analysis (sessions 26-29, 53k samples) shows:
+            //   - ax correlation: 33.4% (poor)
+            //   - ay correlation: 38.3% (poor)
+            //   - Phone orientation varies between rides
             //
-            // Root cause: When throttling (acceleration), ly is NEGATIVE
-            //            When braking, ly is MORE NEGATIVE
-            // This causes throttle → detected as BRAKE (wrong!)
-            //            and brake → detected as ACCEL (wrong!)
+            // NEW SOLUTION: Use heading-aware projection (function already exists!)
+            // Projects acceleration onto heading direction → adapts to orientation automatically
             //
-            // FIX: Invert ly sign to correct forward direction
-            val ly_corrected = -ly  // ⬅️ Invert Y-axis
-            
-            val signed = if (kotlin.math.abs(ly_corrected) > kotlin.math.abs(lx)) {
-                ly_corrected  // Use corrected Y if dominant
+            // Fallback to old logic if heading unavailable (GPS not ready)
+            val forward = if (s.heading > 0f && kotlin.math.abs(s.heading) < 360f) {
+                // Valid heading available - use heading-aware projection
+                getForwardAcceleration(lx, ly, s.heading)
             } else {
-                lx
+                // Fallback to fixed inversion logic
+                val ly_corrected = -ly
+                val signed = if (kotlin.math.abs(ly_corrected) > kotlin.math.abs(lx)) {
+                    ly_corrected
+                } else {
+                    lx
+                }
+                signed * (horizontal / (kotlin.math.abs(signed) + 0.1f))
             }
-
-// ✅ improved forward accel
-            val forward = signed * (horizontal / (kotlin.math.abs(signed) + 0.1f))
 
             signedAccelList.add(forward)
 
@@ -110,7 +111,7 @@ class TeleDriveProcessor {
 // debug
             android.util.Log.d(
                 "FORWARD_DEBUG",
-                "ly_raw=$ly ly_corrected=$ly_corrected lx=$lx horiz=$horizontal forward=$forward"
+                "ly=$ly lx=$lx heading=${s.heading} horiz=$horizontal forward=$forward"
             )
         }
 
