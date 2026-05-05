@@ -1,6 +1,7 @@
 package com.teledrive.app.core
 
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 class EcoScoreEngine {
 
@@ -17,17 +18,17 @@ class EcoScoreEngine {
     private var brakeCount = 0
     private var unstableCount = 0
 
-    // Base penalties (reduced from previous version)
-    private val accelBasePenalty = 6f      // was 6 (0.6 * 10)
-    private val brakeBasePenalty = 8f      // was 10 (1.0 * 10)  
-    private val unstableBasePenalty = 5f   // was 7 (0.7 * 10)
+    // Base penalties (stricter — score 95-100 reserved for zero-event rides)
+    private val accelBasePenalty = 8f      // was 6  (+33%)
+    private val brakeBasePenalty = 10f     // was 8  (+25%)
+    private val unstableBasePenalty = 9f   // was 5  (+80%)
 
     fun processEvent(event: DrivingEvent): Int {
 
         val severity = abs(event.severity).coerceIn(0f, 10f)
 
-        // Normalize severity to 0-1 range (more conservative than before)
-        val normalized = (severity / 10f).coerceIn(0.3f, 1.0f)  // Min 0.3 to avoid zero penalty
+        // Normalize severity to 0-1 range — min 0.7 ensures every event has real impact
+        val normalized = (severity / 10f).coerceIn(0.7f, 1.0f)
 
         // Increment event counters
         when (event.type) {
@@ -60,8 +61,8 @@ class EcoScoreEngine {
         // 20th event: factor = 0.22 (22% penalty)
         val diminishingFactor = 1.0f / kotlin.math.sqrt(count.toFloat())
 
-        // Final penalty = base × severity × diminishing factor
-        val penalty = (basePenalty * normalized * diminishingFactor).toInt()
+        // Final penalty = base × severity × diminishing factor (use rounding for accuracy)
+        val penalty = (basePenalty * normalized * diminishingFactor).roundToInt().coerceAtLeast(1)
 
         // ✅ FUEL WASTAGE (scaled with severity, not affected by diminishing)
         val wastage = when (event.type) {

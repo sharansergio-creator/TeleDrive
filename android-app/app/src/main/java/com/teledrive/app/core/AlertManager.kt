@@ -28,11 +28,11 @@ object AlertManager {
             DrivingEventType.UNSTABLE_RIDE ->
                 "Drive steadily and avoid sudden movements"
 
-            DrivingEventType.NORMAL ->
-                "Driving smoothly. Keep it up!"  // ✅ ADD THIS
+            // NORMAL is a driving state, not an event — no tip should be shown or stored.
+            // Returning null prevents overwriting a meaningful lastTip with fake positivity.
+            DrivingEventType.NORMAL -> null
 
-            else ->
-                "Drive safely and maintain control" // ✅ fallback
+            else -> null
         }
     }
 }

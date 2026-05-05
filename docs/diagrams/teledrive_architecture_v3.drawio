@@ -1,0 +1,203 @@
+<mxfile host="app.diagrams.net">
+  <diagram id="R9wRfT9rfH0Meyyby_yx" name="Page-1">
+    <mxGraphModel dx="1684" dy="1091" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1100" background="#FFFFFF" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=15;fontStyle=1;fontColor=#000000;" value="Figure 3.1: High-Level Architecture of the Proposed TeleDrive System" vertex="1">
+          <mxGeometry height="34" width="1000" x="80" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="L1" parent="1" style="swimlane;startSize=26;fillColor=#dae8fc;strokeColor=#3a5bc7;fontSize=11;fontStyle=1;fontColor=#000000;horizontal=1;rounded=0;" value="LAYER 1 — USER INTERFACE" vertex="1">
+          <mxGeometry height="105" width="1089" x="40" y="54" as="geometry" />
+        </mxCell>
+        <mxCell id="L1_a" parent="L1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3a5bc7;fontColor=#000000;fontSize=10;" value="Main Screen" vertex="1">
+          <mxGeometry height="44" width="130" x="20" y="33" as="geometry" />
+        </mxCell>
+        <mxCell id="L1_b" parent="L1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3a5bc7;fontColor=#000000;fontSize=10;" value="Live Trip Screen" vertex="1">
+          <mxGeometry height="44" width="130" x="163" y="33" as="geometry" />
+        </mxCell>
+        <mxCell id="L1_c" parent="L1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3a5bc7;fontColor=#000000;fontSize=10;" value="Ride Summary" vertex="1">
+          <mxGeometry height="44" width="130" x="306" y="33" as="geometry" />
+        </mxCell>
+        <mxCell id="L1_f" parent="L1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3a5bc7;fontColor=#000000;fontSize=10;" value="Event Map" vertex="1">
+          <mxGeometry height="44" width="130" x="449" y="33" as="geometry" />
+        </mxCell>
+        <mxCell id="L1_g" parent="L1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3a5bc7;fontColor=#000000;fontSize=10;" value="Trips / Trip Detail" vertex="1">
+          <mxGeometry height="44" width="130" x="592" y="33" as="geometry" />
+        </mxCell>
+        <mxCell id="L1_d" parent="L1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3a5bc7;fontColor=#000000;fontSize=10;" value="Profile Screen" vertex="1">
+          <mxGeometry height="44" width="130" x="735" y="33" as="geometry" />
+        </mxCell>
+        <mxCell id="L1_e" parent="L1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#3a5bc7;fontColor=#000000;fontSize=10;" value="Analytics Screen" vertex="1">
+          <mxGeometry height="44" width="130" x="878" y="33" as="geometry" />
+        </mxCell>
+        <mxCell id="L2" parent="1" style="swimlane;startSize=26;fillColor=#e1d5e7;strokeColor=#7b3fa0;fontSize=11;fontStyle=1;fontColor=#000000;horizontal=1;rounded=0;" value="LAYER 2 — DATA AND PERSISTENCE" vertex="1">
+          <mxGeometry height="105" width="1089" x="40" y="215" as="geometry" />
+        </mxCell>
+        <mxCell id="L2_a" parent="L2" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#7b3fa0;fontColor=#000000;fontSize=11;" value="Trip Storage" vertex="1">
+          <mxGeometry height="44" width="175" x="40" y="33" as="geometry" />
+        </mxCell>
+        <mxCell id="L2_cleanup" parent="L2" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#7b3fa0;fontColor=#000000;fontSize=9;" value="EvidenceCleanupWorker&lt;br&gt;&lt;i&gt;(WorkManager, daily 3 AM)&lt;/i&gt;" vertex="1">
+          <mxGeometry height="44" width="190" x="238" y="33" as="geometry" />
+        </mxCell>
+        <mxCell id="L2_c" parent="L2" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#7b3fa0;fontColor=#000000;fontSize=11;" value="User Profile" vertex="1">
+          <mxGeometry height="44" width="175" x="450" y="33" as="geometry" />
+        </mxCell>
+        <mxCell id="L2_d" parent="L2" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#7b3fa0;fontColor=#000000;fontSize=10;" value="Evidence Manager&lt;br&gt;&lt;i style=&#39;font-size:9px&#39;&gt;(Camera + Storage)&lt;/i&gt;" vertex="1">
+          <mxGeometry height="44" width="175" x="810" y="33" as="geometry" />
+        </mxCell>
+        <mxCell id="L3" parent="1" style="swimlane;startSize=26;fillColor=#fff2cc;strokeColor=#c8a000;fontSize=11;fontStyle=1;fontColor=#000000;horizontal=1;rounded=0;" value="LAYER 3 — PROCESSING" vertex="1">
+          <mxGeometry height="235" width="1089" x="40" y="375" as="geometry" />
+        </mxCell>
+        <mxCell id="L3_a" parent="L3" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#c8a000;fontColor=#000000;fontSize=10;" value="Signal Processing &amp;&lt;br&gt;Feature Extraction" vertex="1">
+          <mxGeometry height="55" width="155" x="15" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="L3_ap" parent="L3" style="swimlane;startSize=24;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;fontStyle=1;fontColor=#000000;rounded=0;" value="Analyzer Engine (Hybrid)" vertex="1">
+          <mxGeometry height="120" width="380" x="230" y="32" as="geometry" />
+        </mxCell>
+        <mxCell id="L3_rule" parent="L3_ap" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontColor=#000000;fontSize=10;" value="Rule-Based Analyzer" vertex="1">
+          <mxGeometry height="50" width="160" x="12" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="L3_ml" parent="L3_ap" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontColor=#000000;fontSize=10;" value="ML Analyzer (1D CNN)" vertex="1">
+          <mxGeometry height="50" width="160" x="208" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="L3_c" parent="L3" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#c8a000;fontColor=#000000;fontSize=10;" value="Event Validation&lt;br&gt;&lt;i style=&#39;font-size:9px&#39;&gt;(Speed Gate + Confirmation)&lt;/i&gt;" vertex="1">
+          <mxGeometry height="55" width="165" x="690" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="L3_d" parent="L3" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#c8a000;fontColor=#000000;fontSize=11;" value="Scoring &amp; Fuel Estimation Engine" vertex="1">
+          <mxGeometry height="55" width="145" x="930" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="L3_insight" parent="L3" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#c8a000;fontColor=#000000;fontSize=10;" value="InsightEngine" vertex="1">
+          <mxGeometry height="45" width="180" x="15" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="L3_hotspot" parent="L3" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#c8a000;fontColor=#000000;fontSize=10;" value="HotspotDetector" vertex="1">
+          <mxGeometry height="45" width="180" x="230" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="L3_route" parent="L3" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#c8a000;fontColor=#000000;fontSize=10;" value="RouteAnalyticsHelper" vertex="1">
+          <mxGeometry height="45" width="190" x="445" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="ia1" edge="1" parent="L3" source="L3_a" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;strokeColor=#555555;strokeWidth=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="190" y="85" />
+              <mxPoint x="190" y="85" />
+            </Array>
+            <mxPoint x="230" y="85" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ia3" edge="1" parent="L3" source="L3_c" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;strokeColor=#555555;strokeWidth=1;" target="L3_d" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="tFv8VeMh1GkbqfjMRIYK-2" edge="1" parent="L3" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;strokeColor=#555555;strokeWidth=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="610" y="86.58999999999997" />
+              <mxPoint x="610" y="86.58999999999997" />
+            </Array>
+            <mxPoint x="620" y="86.58999999999997" as="sourcePoint" />
+            <mxPoint x="695" y="86.58999999999997" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="L4" parent="1" style="swimlane;startSize=26;fillColor=#d5e8d4;strokeColor=#2e7d32;fontSize=11;fontStyle=1;fontColor=#000000;horizontal=1;rounded=0;" value="LAYER 4 — FOREGROUND SERVICE (Android Foreground Service)" vertex="1">
+          <mxGeometry height="105" width="1089" x="40" y="647" as="geometry" />
+        </mxCell>
+        <mxCell id="L4_a" parent="L4" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2e7d32;fontColor=#000000;fontSize=11;" value="Sensor Service" vertex="1">
+          <mxGeometry height="44" width="175" x="40" y="33" as="geometry" />
+        </mxCell>
+        <mxCell id="L4_b" parent="L4" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2e7d32;fontColor=#000000;fontSize=10;" value="LocationCacheManager" vertex="1">
+          <mxGeometry height="44" width="175" x="270" y="33" as="geometry" />
+        </mxCell>
+        <mxCell id="L4_c" parent="L4" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2e7d32;fontColor=#000000;fontSize=11;" value="RideSessionManager" vertex="1">
+          <mxGeometry height="44" width="175" x="500" y="33" as="geometry" />
+        </mxCell>
+        <mxCell id="L4_d" parent="L4" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2e7d32;fontColor=#000000;fontSize=11;" value="Location Service" vertex="1">
+          <mxGeometry height="44" width="175" x="730" y="33" as="geometry" />
+        </mxCell>
+        <mxCell id="L5" parent="1" style="swimlane;startSize=26;fillColor=#f5f5f5;strokeColor=#555555;fontSize=11;fontStyle=1;fontColor=#000000;horizontal=1;rounded=0;" value="LAYER 5 — INPUT SOURCES" vertex="1">
+          <mxGeometry height="105" width="1089" x="40" y="808" as="geometry" />
+        </mxCell>
+        <mxCell id="L5_a" parent="L5" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#555555;fontColor=#000000;fontSize=11;" value="Accelerometer Sensor" vertex="1">
+          <mxGeometry height="44" width="195" x="40" y="33" as="geometry" />
+        </mxCell>
+        <mxCell id="L5_b" parent="L5" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#555555;fontColor=#000000;fontSize=11;" value="Gyroscope Sensor" vertex="1">
+          <mxGeometry height="44" width="195" x="440" y="33" as="geometry" />
+        </mxCell>
+        <mxCell id="L5_c" parent="L5" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#555555;fontColor=#000000;fontSize=11;" value="GPS Module" vertex="1">
+          <mxGeometry height="44" width="195" x="830" y="33" as="geometry" />
+        </mxCell>
+        <mxCell id="arr54" edge="1" parent="1" source="L5" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;strokeColor=#2e7d32;strokeWidth=2;fontColor=#000000;fontSize=10;fontStyle=1;exitX=0.25;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;labelBackgroundColor=#FFFFFF;" target="L4" value="Raw Sensor Data">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="312" y="760" />
+              <mxPoint x="312" y="760" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arr43" edge="1" parent="1" source="L4" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;strokeColor=#555555;strokeWidth=2;fontColor=#000000;fontSize=10;fontStyle=1;exitX=0.25;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;labelBackgroundColor=#FFFFFF;" target="L3" value="Processed Sensor Data">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr32" edge="1" parent="1" source="L3" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;strokeColor=#7b3fa0;strokeWidth=2;fontColor=#000000;fontSize=10;fontStyle=1;exitX=0.4;exitY=0;exitDx=0;exitDy=0;entryX=0.4;entryY=1;entryDx=0;entryDy=0;labelBackgroundColor=#FFFFFF;" target="L2" value="Trip Data &amp; Events (Write)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr21" edge="1" parent="1" source="L2" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;strokeColor=#3a5bc7;strokeWidth=2;fontColor=#000000;fontSize=10;fontStyle=1;exitX=0.55;exitY=0;exitDx=0;exitDy=0;entryX=0.55;entryY=1;entryDx=0;entryDy=0;labelBackgroundColor=#FFFFFF;" target="L1" value="Trip History (Read)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="note" parent="1" style="text;html=1;strokeColor=#c8a000;fillColor=#fff9c4;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#000000;spacingLeft=8;" value="&lt;b&gt;Hybrid Detection:&lt;/b&gt; Three modes — Rule-Based (default), ML Analyzer (1D CNN) in AI Assist, and Hybrid (consensus of both). Outputs are validated via the event confirmation state machine (confirm = 1, normal = 2) before scoring." vertex="1">
+          <mxGeometry height="44" width="900" x="90" y="970" as="geometry" />
+        </mxCell>
+        <mxCell id="ee_cam" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#000000;strokeWidth=2;fontSize=11;fontStyle=1;" value="Camera Hardware&lt;br&gt;&lt;i style=&#39;font-size:9px;font-weight:normal&#39;&gt;(Event-Triggered)&lt;/i&gt;" vertex="1">
+          <mxGeometry height="56" width="180" x="1260" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="cam_req" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;strokeColor=#b85450;strokeWidth=1.5;fontColor=#000000;fontSize=9;fontStyle=1;labelBackgroundColor=#FFFFFF;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" target="ee_cam" value="Capture Trigger (Event-based)">
+          <mxGeometry relative="1" y="14" as="geometry">
+            <mxPoint as="offset" />
+            <mxPoint x="1130" y="264" as="sourcePoint" />
+            <mxPoint x="1210" y="269.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cam_img" edge="1" parent="1" source="ee_cam" style="html=1;endArrow=block;endFill=1;strokeColor=#b85450;strokeWidth=1.5;fontColor=#000000;fontSize=9;fontStyle=1;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.482;exitDx=0;exitDy=0;exitPerimeter=0;" value="Captured Image (JPEG)">
+          <mxGeometry relative="1" x="-0.0123" y="13" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="1160" y="277" />
+            </Array>
+            <mxPoint x="1200" y="281" as="sourcePoint" />
+            <mxPoint x="1129" y="277" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ldb_box" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#c8a000;strokeWidth=2;fontSize=9;fontStyle=1;fontColor=#000000;verticalAlign=middle;" value="LiveDataBus –&lt;br&gt;Real-time Event&lt;br&gt;Streaming Bridge" vertex="1">
+          <mxGeometry height="710" width="140" x="1450" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="ldb_to_l1" edge="1" parent="1" source="ldb_box" style="html=1;endArrow=block;endFill=1;strokeColor=#c8a000;strokeWidth=1.5;fontColor=#000000;fontSize=9;fontStyle=1;labelBackgroundColor=#FFFFFF;exitX=-0.016;exitY=0.05;exitDx=0;exitDy=0;exitPerimeter=0;" value="Live Trip Data">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1450" y="210" as="sourcePoint" />
+            <mxPoint x="1129" y="106" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ctrl_l1_ldb" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;strokeColor=#d6840a;strokeWidth=1.5;fontColor=#000000;fontSize=9;fontStyle=1;labelBackgroundColor=#FFFFFF;dashed=1;dashPattern=6 3;entryX=0.004;entryY=0.083;entryDx=0;entryDy=0;entryPerimeter=0;" target="ldb_box" value="Trip Control (Start/Stop)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1129" y="130" as="sourcePoint" />
+            <mxPoint x="1440" y="130" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ldb_from_l4" edge="1" parent="1" style="html=1;endArrow=block;endFill=1;strokeColor=#c8a000;strokeWidth=1.5;fontColor=#000000;fontSize=9;fontStyle=1;labelBackgroundColor=#FFFFFF;" value="Live Trip Data">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+            <mxPoint x="1132" y="715" as="sourcePoint" />
+            <mxPoint x="1450" y="715" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ctrl_ldb_l4" edge="1" parent="1" style="endArrow=block;endFill=1;strokeColor=#d6840a;strokeWidth=1.5;fontColor=#000000;fontSize=9;fontStyle=1;labelBackgroundColor=#FFFFFF;dashed=1;dashPattern=6 3;html=1;verticalAlign=bottom;" value="Trip Control (Start/Stop)">
+          <mxGeometry relative="1" x="-0.0126" y="1" as="geometry">
+            <mxPoint x="-1" as="offset" />
+            <mxPoint x="1447" y="689" as="sourcePoint" />
+            <mxPoint x="1129" y="690" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="legend" parent="1" style="text;html=1;strokeColor=#aaaaaa;fillColor=#f5f5f5;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9;fontColor=#000000;spacingLeft=6;" value="&lt;b&gt;Legend:&lt;/b&gt;&lt;br&gt;──▶ Data Flow (Solid Arrow)&lt;br&gt;- - ▶ Control Signal (Dashed Arrow)" vertex="1">
+          <mxGeometry height="56" width="200" x="1050" y="972" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

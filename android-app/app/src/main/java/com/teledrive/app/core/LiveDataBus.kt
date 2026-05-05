@@ -1,5 +1,6 @@
 package com.teledrive.app.core
 
 object LiveDataBus {
-    var listener: ((String, Float, Float,String?) -> Unit)? = null
+    /** (eventLabel, speedKmH, stdAccel, tip, confidence, sourceName) */
+    var listener: ((String, Float, Float, String?, Float, String) -> Unit)? = null
 }

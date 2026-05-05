@@ -6,11 +6,19 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
+    <!-- Required by osmdroid to download and cache OpenStreetMap tiles -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <!-- Required to save evidence to gallery on Android 9 and below.
+         Android 10+ uses MediaStore; no permission needed there. -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false"/>
@@ -38,12 +46,40 @@
             android:configChanges="orientation|screenSize" />
 
         <activity
+            android:name=".evidence.EventEvidenceActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+
+        <activity
             android:name=".RideSummaryActivity"
             android:exported="false"
             android:noHistory="true"
             android:screenOrientation="portrait" />
 
-        <activity android:name=".TripDetailsActivity" />
+        <!-- Legacy activity - kept for backward compatibility -->
+        <activity android:name=".TripDetailsActivity"
+            android:screenOrientation="portrait" />
+
+        <!-- NEW: Restructured navigation activities -->
+        <activity android:name=".TripsActivity"
+            android:screenOrientation="portrait" />
+
+        <activity android:name=".AnalyticsActivity"
+            android:screenOrientation="portrait" />
+
+        <activity android:name=".TripDetailActivity"
+            android:screenOrientation="portrait" />
+
+        <activity android:name=".EventMapActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+
+        <activity android:name=".profile.ProfileActivity"
+            android:screenOrientation="portrait" />
+
+        <activity android:name=".onboarding.OnboardingActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.TeleDrive" />
 
         <activity
             android:name=".MainActivity"

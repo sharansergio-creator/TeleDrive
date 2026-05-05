@@ -71,6 +71,13 @@ dependencies {
     implementation("org.tensorflow:tensorflow-lite:2.17.0")
     implementation("org.tensorflow:tensorflow-lite-support:0.5.0")
     implementation("org.tensorflow:tensorflow-lite-gpu:2.17.0")
+    
+    // WorkManager for evidence cleanup
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+
+    // OpenStreetMap map rendering (offline-capable, no API key required)
+    implementation("org.osmdroid:osmdroid-android:6.1.18")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

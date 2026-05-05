@@ -1,0 +1,64 @@
+<mxfile host="app.diagrams.net">
+  <diagram id="teledrive_erd" name="Page-1">
+    <mxGraphModel dx="1425" dy="923" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="680" background="#FFFFFF" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=14;fontStyle=1;fontColor=#000000;" value="Figure 3.4: Entity Relationship Diagram of the Proposed TeleDrive System" vertex="1">
+          <mxGeometry height="30" width="1400" x="50" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="up_header" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=12;align=center;verticalAlign=middle;" value="UserProfile" vertex="1">
+          <mxGeometry height="40" width="260" x="80" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="up_attr" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;" value="&lt;u&gt;userId (PK)&lt;/u&gt; : String&lt;br&gt;name : String&lt;br&gt;vehicleName : String&lt;br&gt;vehicleType : String&lt;br&gt;engineCC : Int&lt;br&gt;mileage : Float&lt;br&gt;createdAt : Long" vertex="1">
+          <mxGeometry height="128" width="260" x="80" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="ts_header" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=12;align=center;verticalAlign=middle;" value="TripSummary" vertex="1">
+          <mxGeometry height="40" width="300" x="570" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="ts_attr" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;" value="&lt;u&gt;tripId (PK)&lt;/u&gt; : String&lt;br&gt;&lt;i&gt;userId (FK → UserProfile.userId)&lt;/i&gt; : String&lt;br&gt;score : Int&lt;br&gt;distanceKm : Double&lt;br&gt;timestamp : Long&lt;br&gt;durationMs : Long&lt;br&gt;startLat : Double&lt;br&gt;startLng : Double&lt;br&gt;endLat : Double&lt;br&gt;endLng : Double&lt;br&gt;startLocationName : String&lt;br&gt;endLocationName : String&lt;br&gt;accelCount : Int&lt;br&gt;brakeCount : Int&lt;br&gt;unstableCount : Int&lt;br&gt;fuelConsumed : Double&lt;br&gt;tip : String" vertex="1">
+          <mxGeometry height="304" width="300" x="570" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="ei_header" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=12;align=center;verticalAlign=middle;" value="EvidenceItem" vertex="1">
+          <mxGeometry height="40" width="280" x="1130" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="ei_attr" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;" value="&lt;u&gt;evidenceId (PK)&lt;/u&gt; : String&lt;br&gt;&lt;i&gt;tripId (FK → TripSummary.tripId)&lt;/i&gt; : String&lt;br&gt;filename : String&lt;br&gt;eventType : String&lt;br&gt;timestamp : Long&lt;br&gt;fileSizeBytes : Long&lt;br&gt;confidenceScore : Float" vertex="1">
+          <mxGeometry height="144" width="280" x="1130" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="rel1_diamond" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#000000;strokeWidth=2;fontSize=10;fontStyle=1;align=center;verticalAlign=middle;" value="has" vertex="1">
+          <mxGeometry height="60" width="110" x="400" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="rel1_left" edge="1" parent="1" source="up_header" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=none;startArrow=none;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="rel1_diamond">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel1_card1" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=14;fontStyle=1;" value="1" vertex="1">
+          <mxGeometry height="24" width="20" x="340" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="rel1_right" edge="1" parent="1" source="rel1_diamond" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=none;startArrow=none;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="ts_header">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel1_cardN" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=14;fontStyle=1;" value="N" vertex="1">
+          <mxGeometry height="24" width="20" x="550" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="rel2_diamond" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#000000;strokeWidth=2;fontSize=10;fontStyle=1;align=center;verticalAlign=middle;" value="contains" vertex="1">
+          <mxGeometry height="60" width="120" x="940" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="rel2_left" edge="1" parent="1" source="ts_header" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=none;startArrow=none;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="rel2_diamond">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel2_card1" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=14;fontStyle=1;" value="1" vertex="1">
+          <mxGeometry height="24" width="20" x="870" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="rel2_right" edge="1" parent="1" source="rel2_diamond" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=none;startArrow=none;strokeColor=#000000;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="ei_header">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel2_cardN" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=14;fontStyle=1;" value="N" vertex="1">
+          <mxGeometry height="24" width="20" x="1110" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="note" parent="1" style="text;html=1;strokeColor=#aaaaaa;fillColor=#f9f9f9;align=left;verticalAlign=middle;fontSize=9;fontStyle=2;fontColor=#555555;spacingLeft=8;" value="Note: EvidenceItem records are stored as JPEG files on the device filesystem. Each EvidenceItem is linked to a TripSummary by timestamp proximity; Foreign key relationships are logically maintained at the application layer due to file-based storage." vertex="1">
+          <mxGeometry height="28" width="1330" x="80" y="554" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

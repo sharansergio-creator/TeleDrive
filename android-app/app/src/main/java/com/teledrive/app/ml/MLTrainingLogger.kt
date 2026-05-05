@@ -33,8 +33,10 @@ class MLTrainingLogger(context: Context) {
     }
 
     // File setup
-    private val dateFormat = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.getDefault())
-    private val fileName = "training_${dateFormat.format(Date())}.csv"
+    private val dateFormat = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss_SSS", Locale.getDefault())
+    // Include milliseconds (SSS) to guarantee unique filenames even if two sessions
+    // start within the same second.  Also append the process ID for extra safety.
+    private val fileName = "training_${dateFormat.format(Date())}_pid${android.os.Process.myPid()}.csv"
     val file = File(context.getExternalFilesDir(null), fileName)
 
     // Sample buffer for window-based logging
@@ -52,7 +54,9 @@ class MLTrainingLogger(context: Context) {
 
     init {
         if (!file.exists()) {
-            file.writeText("timestamp,ax,ay,az,gx,gy,gz,speed,label\n")
+            // heading: GPS bearing in degrees [0,360) or -1 if unavailable.
+            // Allows offline recomputation of heading-projected forwardAcc for physics validation.
+            file.writeText("timestamp,ax,ay,az,gx,gy,gz,speed,heading,label\n")
         }
         Log.d(TAG, "MLTrainingLogger initialized: ${file.absolutePath}")
     }
@@ -152,6 +156,7 @@ class MLTrainingLogger(context: Context) {
                         "${sample.ax},${sample.ay},${sample.az}," +
                         "${sample.gx},${sample.gy},${sample.gz}," +
                         "$speed," +
+                        "${sample.heading}," +
                         "$labelInt\n"
                     )
                     totalSamplesLogged++

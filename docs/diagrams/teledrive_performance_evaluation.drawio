@@ -1,0 +1,301 @@
+<mxfile host="app.diagrams.net">
+  <diagram id="perf_eval" name="Figure 13 - Performance Evaluation">
+    <mxGraphModel dx="926" dy="600" grid="0" gridSize="5" guides="1" tooltips="1" connect="0" arrows="0" fold="0" page="1" pageScale="1" pageWidth="1100" pageHeight="680" background="#FFFFFF" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=15;fontStyle=1;fontFamily=Arial;fontColor=#1A1A2E;" value="Overall Performance Evaluation of TeleDrive System" vertex="1">
+          <mxGeometry height="30" width="900" x="100" y="18" as="geometry" />
+        </mxCell>
+        <mxCell id="title_rule" parent="1" style="line;strokeColor=#1565C0;strokeWidth=2;fillColor=none;" vertex="1">
+          <mxGeometry height="4" width="900" x="100" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="hdr_ml" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1565C0;strokeColor=none;fontColor=#FFFFFF;fontSize=10;fontStyle=1;fontFamily=Arial;align=left;spacingLeft=10;verticalAlign=middle;" value="A.  Machine Learning Classification Performance" vertex="1">
+          <mxGeometry height="24" width="420" x="100" y="64" as="geometry" />
+        </mxCell>
+        <mxCell id="chart_bg" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F8FF;strokeColor=#CCCCCC;strokeWidth=1;" vertex="1">
+          <mxGeometry height="178" width="420" x="100" y="88" as="geometry" />
+        </mxCell>
+        <mxCell id="g25" parent="1" style="line;strokeColor=#E0E0E0;strokeWidth=1;fillColor=none;horizontal=1;" vertex="1">
+          <mxGeometry height="1" width="350" x="155" y="219" as="geometry" />
+        </mxCell>
+        <mxCell id="g50" parent="1" style="line;strokeColor=#E0E0E0;strokeWidth=1;fillColor=none;horizontal=1;" vertex="1">
+          <mxGeometry height="1" width="350" x="155" y="185" as="geometry" />
+        </mxCell>
+        <mxCell id="g75" parent="1" style="line;strokeColor=#E0E0E0;strokeWidth=1;fillColor=none;horizontal=1;" vertex="1">
+          <mxGeometry height="1" width="350" x="155" y="151" as="geometry" />
+        </mxCell>
+        <mxCell id="g100" parent="1" style="line;strokeColor=#BBBBBB;strokeWidth=1;fillColor=none;horizontal=1;" vertex="1">
+          <mxGeometry height="1" width="350" x="155" y="117" as="geometry" />
+        </mxCell>
+        <mxCell id="yl0" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontSize=8;fontFamily=Arial;fontColor=#666666;" value="0%" vertex="1">
+          <mxGeometry height="14" width="40" x="108" y="247" as="geometry" />
+        </mxCell>
+        <mxCell id="yl25" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontSize=8;fontFamily=Arial;fontColor=#666666;" value="25%" vertex="1">
+          <mxGeometry height="14" width="40" x="108" y="213" as="geometry" />
+        </mxCell>
+        <mxCell id="yl50" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontSize=8;fontFamily=Arial;fontColor=#666666;" value="50%" vertex="1">
+          <mxGeometry height="14" width="40" x="108" y="179" as="geometry" />
+        </mxCell>
+        <mxCell id="yl75" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontSize=8;fontFamily=Arial;fontColor=#666666;" value="75%" vertex="1">
+          <mxGeometry height="14" width="40" x="108" y="145" as="geometry" />
+        </mxCell>
+        <mxCell id="yl100" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontSize=8;fontFamily=Arial;fontColor=#666666;" value="100%" vertex="1">
+          <mxGeometry height="14" width="44" x="104" y="111" as="geometry" />
+        </mxCell>
+        <mxCell id="baseline" parent="1" style="line;strokeColor=#888888;strokeWidth=1;fillColor=none;horizontal=1;" vertex="1">
+          <mxGeometry height="1" width="350" x="155" y="253" as="geometry" />
+        </mxCell>
+        <mxCell id="bar1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1565C0;strokeColor=none;" vertex="1">
+          <mxGeometry height="131" width="48" x="175" y="122" as="geometry" />
+        </mxCell>
+        <mxCell id="bar1_val" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=bottom;fontSize=9;fontStyle=1;fontFamily=Arial;fontColor=#1565C0;" value="96%" vertex="1">
+          <mxGeometry height="14" width="48" x="175" y="108" as="geometry" />
+        </mxCell>
+        <mxCell id="bar1_lbl" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;fontSize=7.5;fontFamily=Arial;fontColor=#333333;" value="Overall&lt;br&gt;Accuracy" vertex="1">
+          <mxGeometry height="24" width="68" x="165" y="255" as="geometry" />
+        </mxCell>
+        <mxCell id="bar2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1976D2;strokeColor=none;" vertex="1">
+          <mxGeometry height="122" width="48" x="243" y="131" as="geometry" />
+        </mxCell>
+        <mxCell id="bar2_val" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=bottom;fontSize=9;fontStyle=1;fontFamily=Arial;fontColor=#1976D2;" value="90%" vertex="1">
+          <mxGeometry height="14" width="48" x="243" y="117" as="geometry" />
+        </mxCell>
+        <mxCell id="bar2_lbl" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;fontSize=7.5;fontFamily=Arial;fontColor=#333333;" value="Harsh Accel&lt;br&gt;Recall" vertex="1">
+          <mxGeometry height="24" width="68" x="233" y="255" as="geometry" />
+        </mxCell>
+        <mxCell id="bar3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2196F3;strokeColor=none;" vertex="1">
+          <mxGeometry height="125" width="48" x="311" y="128" as="geometry" />
+        </mxCell>
+        <mxCell id="bar3_val" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=bottom;fontSize=9;fontStyle=1;fontFamily=Arial;fontColor=#2196F3;" value="92%" vertex="1">
+          <mxGeometry height="14" width="48" x="311" y="114" as="geometry" />
+        </mxCell>
+        <mxCell id="bar3_lbl" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;fontSize=7.5;fontFamily=Arial;fontColor=#333333;" value="Macro F1&lt;br&gt;Score" vertex="1">
+          <mxGeometry height="24" width="68" x="301" y="255" as="geometry" />
+        </mxCell>
+        <mxCell id="bar4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#0D47A1;strokeColor=none;" vertex="1">
+          <mxGeometry height="136" width="48" x="379" y="117" as="geometry" />
+        </mxCell>
+        <mxCell id="bar4_val" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=bottom;fontSize=9;fontStyle=1;fontFamily=Arial;fontColor=#0D47A1;" value="100%" vertex="1">
+          <mxGeometry height="14" width="48" x="379" y="103" as="geometry" />
+        </mxCell>
+        <mxCell id="bar4_lbl" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;fontSize=7.5;fontFamily=Arial;fontColor=#333333;" value="Offline&lt;br&gt;Operation" vertex="1">
+          <mxGeometry height="24" width="68" x="369" y="255" as="geometry" />
+        </mxCell>
+        <mxCell id="hdr_rt" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1565C0;strokeColor=none;fontColor=#FFFFFF;fontSize=10;fontStyle=1;fontFamily=Arial;align=left;spacingLeft=10;verticalAlign=middle;" value="B.  Real-Time System Performance" vertex="1">
+          <mxGeometry height="24" width="441" x="539" y="62" as="geometry" />
+        </mxCell>
+        <mxCell id="card_inf" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1565C0;strokeWidth=1.5;fontFamily=Arial;" vertex="1">
+          <mxGeometry height="80" width="138" x="540" y="88" as="geometry" />
+        </mxCell>
+        <mxCell id="card_inf_val" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fontFamily=Arial;fontColor=#1565C0;" value="&lt; 50 ms" vertex="1">
+          <mxGeometry height="22" width="138" x="540" y="107" as="geometry" />
+        </mxCell>
+        <mxCell id="card_inf_lbl" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=8;fontFamily=Arial;fontColor=#555555;" value="TFLite Inference Time" vertex="1">
+          <mxGeometry height="20" width="138" x="540" y="139" as="geometry" />
+        </mxCell>
+        <mxCell id="card_win" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1565C0;strokeWidth=1.5;fontFamily=Arial;" vertex="1">
+          <mxGeometry height="80" width="138" x="691" y="88" as="geometry" />
+        </mxCell>
+        <mxCell id="card_win_val" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fontFamily=Arial;fontColor=#1565C0;" value="1 second" vertex="1">
+          <mxGeometry height="22" width="138" x="691" y="106" as="geometry" />
+        </mxCell>
+        <mxCell id="card_win_lbl" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=8;fontFamily=Arial;fontColor=#555555;" value="Real-Time Window Size" vertex="1">
+          <mxGeometry height="20" width="138" x="691" y="139" as="geometry" />
+        </mxCell>
+        <mxCell id="card_hz" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1565C0;strokeWidth=1.5;fontFamily=Arial;" vertex="1">
+          <mxGeometry height="80" width="138" x="842" y="88" as="geometry" />
+        </mxCell>
+        <mxCell id="card_hz_val" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fontFamily=Arial;fontColor=#1565C0;" value="~50 Hz" vertex="1">
+          <mxGeometry height="22" width="138" x="842" y="107" as="geometry" />
+        </mxCell>
+        <mxCell id="card_hz_lbl" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=8;fontFamily=Arial;fontColor=#555555;" value="Sensor Sampling Rate" vertex="1">
+          <mxGeometry height="20" width="138" x="842" y="139" as="geometry" />
+        </mxCell>
+        <mxCell id="hdr_cap" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1565C0;strokeColor=none;fontColor=#FFFFFF;fontSize=10;fontStyle=1;fontFamily=Arial;align=left;spacingLeft=10;verticalAlign=middle;" value="C.  System Capability Summary" vertex="1">
+          <mxGeometry height="24" width="460" x="540" y="186" as="geometry" />
+        </mxCell>
+        <mxCell id="cap_bg" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#CCCCCC;strokeWidth=1;" vertex="1">
+          <mxGeometry height="122" width="460" x="540" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="cap_col_lbl" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DDEEFF;strokeColor=#CCCCCC;strokeWidth=1;" vertex="1">
+          <mxGeometry height="122" width="180" x="540" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="r1_sep" parent="1" style="line;strokeColor=#DDDDDD;strokeWidth=1;fillColor=none;" vertex="1">
+          <mxGeometry height="1" width="460" x="540" y="234" as="geometry" />
+        </mxCell>
+        <mxCell id="r1_key" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontStyle=1;fontFamily=Arial;fontColor=#1A1A2E;spacingLeft=8;" value="On-Device Processing" vertex="1">
+          <mxGeometry height="24" width="180" x="540" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="r1_val" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontFamily=Arial;fontColor=#333333;spacingLeft=10;" value="✔  Fully on-device — no remote inference required" vertex="1">
+          <mxGeometry height="24" width="280" x="720" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="r2_sep" parent="1" style="line;strokeColor=#DDDDDD;strokeWidth=1;fillColor=none;" vertex="1">
+          <mxGeometry height="1" width="460" x="540" y="258" as="geometry" />
+        </mxCell>
+        <mxCell id="r2_key" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontStyle=1;fontFamily=Arial;fontColor=#1A1A2E;spacingLeft=8;" value="Cloud Dependency" vertex="1">
+          <mxGeometry height="24" width="180" x="540" y="234" as="geometry" />
+        </mxCell>
+        <mxCell id="r2_val" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontFamily=Arial;fontColor=#333333;spacingLeft=10;" value="✘  None — offline-first architecture" vertex="1">
+          <mxGeometry height="24" width="280" x="720" y="234" as="geometry" />
+        </mxCell>
+        <mxCell id="r3_sep" parent="1" style="line;strokeColor=#DDDDDD;strokeWidth=1;fillColor=none;" vertex="1">
+          <mxGeometry height="1" width="460" x="540" y="282" as="geometry" />
+        </mxCell>
+        <mxCell id="r3_key" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontStyle=1;fontFamily=Arial;fontColor=#1A1A2E;spacingLeft=8;" value="Minimum Android Version" vertex="1">
+          <mxGeometry height="24" width="180" x="540" y="258" as="geometry" />
+        </mxCell>
+        <mxCell id="r3_val" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontFamily=Arial;fontColor=#333333;spacingLeft=10;" value="API 29+  (Android 10 and above)" vertex="1">
+          <mxGeometry height="24" width="280" x="720" y="258" as="geometry" />
+        </mxCell>
+        <mxCell id="r4_sep" parent="1" style="line;strokeColor=#DDDDDD;strokeWidth=1;fillColor=none;" vertex="1">
+          <mxGeometry height="1" width="460" x="540" y="306" as="geometry" />
+        </mxCell>
+        <mxCell id="r4_key" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontStyle=1;fontFamily=Arial;fontColor=#1A1A2E;spacingLeft=8;" value="Offline Operation" vertex="1">
+          <mxGeometry height="24" width="180" x="540" y="282" as="geometry" />
+        </mxCell>
+        <mxCell id="r4_val" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontFamily=Arial;fontColor=#333333;spacingLeft=10;" value="100%  — operates without internet connectivity" vertex="1">
+          <mxGeometry height="24" width="280" x="720" y="282" as="geometry" />
+        </mxCell>
+        <mxCell id="r5_key" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontStyle=1;fontFamily=Arial;fontColor=#1A1A2E;spacingLeft=8;" value="ML Runtime" vertex="1">
+          <mxGeometry height="24" width="180" x="540" y="306" as="geometry" />
+        </mxCell>
+        <mxCell id="r5_val" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=9;fontFamily=Arial;fontColor=#333333;spacingLeft=10;" value="TensorFlow Lite — quantized 1D-CNN model" vertex="1">
+          <mxGeometry height="24" width="280" x="720" y="306" as="geometry" />
+        </mxCell>
+        <mxCell id="hdr_sum" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1565C0;strokeColor=none;fontColor=#FFFFFF;fontSize=10;fontStyle=1;fontFamily=Arial;align=left;spacingLeft=10;verticalAlign=middle;" value="D.  ML Classification Metrics Summary" vertex="1">
+          <mxGeometry height="24" width="900" x="100" y="352" as="geometry" />
+        </mxCell>
+        <mxCell id="tbl_bg" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#CCCCCC;strokeWidth=1;" vertex="1">
+          <mxGeometry height="30" width="900" x="100" y="376" as="geometry" />
+        </mxCell>
+        <mxCell id="th_bg" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DDEEFF;strokeColor=#CCCCCC;strokeWidth=1;" vertex="1">
+          <mxGeometry height="24" width="900" x="100" y="376" as="geometry" />
+        </mxCell>
+        <mxCell id="th_class" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontStyle=1;fontFamily=Arial;fontColor=#1A1A2E;" value="Class" vertex="1">
+          <mxGeometry height="24" width="160" x="100" y="376" as="geometry" />
+        </mxCell>
+        <mxCell id="th_prec" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontStyle=1;fontFamily=Arial;fontColor=#1A1A2E;" value="Precision" vertex="1">
+          <mxGeometry height="24" width="160" x="260" y="376" as="geometry" />
+        </mxCell>
+        <mxCell id="th_rec" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontStyle=1;fontFamily=Arial;fontColor=#1A1A2E;" value="Recall" vertex="1">
+          <mxGeometry height="24" width="160" x="420" y="376" as="geometry" />
+        </mxCell>
+        <mxCell id="th_f1" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontStyle=1;fontFamily=Arial;fontColor=#1A1A2E;" value="F1-Score" vertex="1">
+          <mxGeometry height="24" width="160" x="580" y="376" as="geometry" />
+        </mxCell>
+        <mxCell id="th_sup" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontStyle=1;fontFamily=Arial;fontColor=#1A1A2E;" value="Support (windows)" vertex="1">
+          <mxGeometry height="24" width="260" x="740" y="376" as="geometry" />
+        </mxCell>
+        <mxCell id="vd1" parent="1" style="line;strokeColor=#CCCCCC;strokeWidth=1;fillColor=none;vertical=1;" vertex="1">
+          <mxGeometry height="148" width="1" x="260" y="376" as="geometry" />
+        </mxCell>
+        <mxCell id="vd2" parent="1" style="line;strokeColor=#CCCCCC;strokeWidth=1;fillColor=none;vertical=1;" vertex="1">
+          <mxGeometry height="148" width="1" x="420" y="376" as="geometry" />
+        </mxCell>
+        <mxCell id="vd3" parent="1" style="line;strokeColor=#CCCCCC;strokeWidth=1;fillColor=none;vertical=1;" vertex="1">
+          <mxGeometry height="148" width="1" x="580" y="376" as="geometry" />
+        </mxCell>
+        <mxCell id="vd4" parent="1" style="line;strokeColor=#CCCCCC;strokeWidth=1;fillColor=none;vertical=1;" vertex="1">
+          <mxGeometry height="148" width="1" x="740" y="376" as="geometry" />
+        </mxCell>
+        <mxCell id="tr1_bg" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CCCCCC;strokeWidth=1;" vertex="1">
+          <mxGeometry height="26" width="900" x="100" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="tr1_c" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontFamily=Arial;fontColor=#333333;" value="NORMAL" vertex="1">
+          <mxGeometry height="26" width="160" x="100" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="tr1_p" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontFamily=Arial;fontColor=#333333;" value="0.990" vertex="1">
+          <mxGeometry height="26" width="160" x="260" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="tr1_r" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontFamily=Arial;fontColor=#333333;" value="1.000" vertex="1">
+          <mxGeometry height="26" width="160" x="420" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="tr1_f" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontFamily=Arial;fontColor=#333333;" value="0.995" vertex="1">
+          <mxGeometry height="26" width="160" x="580" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="tr1_s" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontFamily=Arial;fontColor=#333333;" value="300" vertex="1">
+          <mxGeometry height="26" width="260" x="740" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="tr2_bg" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F8FF;strokeColor=#CCCCCC;strokeWidth=1;" vertex="1">
+          <mxGeometry height="26" width="900" x="100" y="426" as="geometry" />
+        </mxCell>
+        <mxCell id="tr2_c" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontFamily=Arial;fontColor=#333333;" value="HARSH_ACCELERATION" vertex="1">
+          <mxGeometry height="26" width="160" x="100" y="426" as="geometry" />
+        </mxCell>
+        <mxCell id="tr2_p" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontStyle=1;fontFamily=Arial;fontColor=#1565C0;" value="1.000" vertex="1">
+          <mxGeometry height="26" width="160" x="260" y="426" as="geometry" />
+        </mxCell>
+        <mxCell id="tr2_r" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontFamily=Arial;fontColor=#333333;" value="0.975" vertex="1">
+          <mxGeometry height="26" width="160" x="420" y="426" as="geometry" />
+        </mxCell>
+        <mxCell id="tr2_f" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontFamily=Arial;fontColor=#333333;" value="0.987" vertex="1">
+          <mxGeometry height="26" width="160" x="580" y="426" as="geometry" />
+        </mxCell>
+        <mxCell id="tr2_s" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontFamily=Arial;fontColor=#333333;" value="40" vertex="1">
+          <mxGeometry height="26" width="260" x="740" y="426" as="geometry" />
+        </mxCell>
+        <mxCell id="tr3_bg" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CCCCCC;strokeWidth=1;" vertex="1">
+          <mxGeometry height="26" width="900" x="100" y="452" as="geometry" />
+        </mxCell>
+        <mxCell id="tr3_c" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontFamily=Arial;fontColor=#333333;" value="HARSH_BRAKING" vertex="1">
+          <mxGeometry height="26" width="160" x="100" y="452" as="geometry" />
+        </mxCell>
+        <mxCell id="tr3_p" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontFamily=Arial;fontColor=#333333;" value="0.889" vertex="1">
+          <mxGeometry height="26" width="160" x="260" y="452" as="geometry" />
+        </mxCell>
+        <mxCell id="tr3_r" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontFamily=Arial;fontColor=#333333;" value="0.941" vertex="1">
+          <mxGeometry height="26" width="160" x="420" y="452" as="geometry" />
+        </mxCell>
+        <mxCell id="tr3_f" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontFamily=Arial;fontColor=#333333;" value="0.914" vertex="1">
+          <mxGeometry height="26" width="160" x="580" y="452" as="geometry" />
+        </mxCell>
+        <mxCell id="tr3_s" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontFamily=Arial;fontColor=#333333;" value="17" vertex="1">
+          <mxGeometry height="26" width="260" x="740" y="452" as="geometry" />
+        </mxCell>
+        <mxCell id="tr4_bg" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F8FF;strokeColor=#CCCCCC;strokeWidth=1;" vertex="1">
+          <mxGeometry height="26" width="900" x="100" y="478" as="geometry" />
+        </mxCell>
+        <mxCell id="tr4_c" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontFamily=Arial;fontColor=#333333;" value="UNSTABLE_RIDE" vertex="1">
+          <mxGeometry height="26" width="160" x="100" y="478" as="geometry" />
+        </mxCell>
+        <mxCell id="tr4_p" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontStyle=1;fontFamily=Arial;fontColor=#1565C0;" value="1.000" vertex="1">
+          <mxGeometry height="26" width="160" x="260" y="478" as="geometry" />
+        </mxCell>
+        <mxCell id="tr4_r" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontFamily=Arial;fontColor=#333333;" value="0.933" vertex="1">
+          <mxGeometry height="26" width="160" x="420" y="478" as="geometry" />
+        </mxCell>
+        <mxCell id="tr4_f" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontFamily=Arial;fontColor=#333333;" value="0.966" vertex="1">
+          <mxGeometry height="26" width="160" x="580" y="478" as="geometry" />
+        </mxCell>
+        <mxCell id="tr4_s" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontFamily=Arial;fontColor=#333333;" value="45" vertex="1">
+          <mxGeometry height="26" width="260" x="740" y="478" as="geometry" />
+        </mxCell>
+        <mxCell id="tr_avg_bg" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DDEEFF;strokeColor=#CCCCCC;strokeWidth=1.5;" vertex="1">
+          <mxGeometry height="20" width="900" x="100" y="504" as="geometry" />
+        </mxCell>
+        <mxCell id="tr_avg_c" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontStyle=1;fontFamily=Arial;fontColor=#1A1A2E;" value="Macro Avg / Overall" vertex="1">
+          <mxGeometry height="20" width="160" x="100" y="504" as="geometry" />
+        </mxCell>
+        <mxCell id="tr_avg_p" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontStyle=1;fontFamily=Arial;fontColor=#1A1A2E;" value="0.970" vertex="1">
+          <mxGeometry height="20" width="160" x="260" y="504" as="geometry" />
+        </mxCell>
+        <mxCell id="tr_avg_r" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontStyle=1;fontFamily=Arial;fontColor=#1A1A2E;" value="0.962" vertex="1">
+          <mxGeometry height="20" width="160" x="420" y="504" as="geometry" />
+        </mxCell>
+        <mxCell id="tr_avg_f" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontStyle=1;fontFamily=Arial;fontColor=#1A1A2E;" value="0.966" vertex="1">
+          <mxGeometry height="20" width="160" x="580" y="504" as="geometry" />
+        </mxCell>
+        <mxCell id="tr_avg_s" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontStyle=1;fontFamily=Arial;fontColor=#1A1A2E;" value="402  |  Accuracy: 98.76%" vertex="1">
+          <mxGeometry height="20" width="260" x="740" y="504" as="geometry" />
+        </mxCell>
+        <mxCell id="bottom_rule" parent="1" style="line;strokeColor=#1565C0;strokeWidth=1.5;fillColor=none;" vertex="1">
+          <mxGeometry height="4" width="900" x="100" y="534" as="geometry" />
+        </mxCell>
+        <mxCell id="caption" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=9;fontFamily=Arial;fontColor=#444444;fontStyle=2;" value="Figure 13: Overall Performance Evaluation of TeleDrive System — combining ML classification metrics, real-time processing performance, and system capability summary." vertex="1">
+          <mxGeometry height="28" width="900" x="100" y="538" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

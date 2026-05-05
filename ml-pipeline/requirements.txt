@@ -1,5 +1,10 @@
-joblib
-numpy
-pandas
-scikit-learn
-tensorflow
+# TeleDrive ML Pipeline — Python dependencies
+# Core ML/data
+numpy>=1.24
+pandas>=2.0
+scikit-learn>=1.3
+tensorflow>=2.13
+joblib>=1.3
+
+# Visualisation (training curves, confusion matrix)
+matplotlib>=3.7

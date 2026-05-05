@@ -3,11 +3,13 @@ package com.teledrive.app
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
+import android.media.ExifInterface
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -24,6 +26,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.unit.dp
@@ -41,6 +44,34 @@ import com.teledrive.app.triphistory.TripSummary
 import com.teledrive.app.triphistory.TripTrend
 import android.app.Activity
 import android.content.Intent
+import com.teledrive.app.evidence.EvidenceManager
+import com.teledrive.app.evidence.EventEvidenceActivity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
+// ── Image helpers ─────────────────────────────────────────────────────────────
+
+/**
+ * Decode a JPEG from [path] and apply any EXIF rotation so the bitmap is
+ * always upright. Returns null if the file cannot be read.
+ */
+private fun loadCorrectedBitmap(path: String): Bitmap? = try {
+    val raw = BitmapFactory.decodeFile(path) ?: return null
+    val exif = ExifInterface(path)
+    val rotation = when (
+        exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+    ) {
+        ExifInterface.ORIENTATION_ROTATE_90  -> 90f
+        ExifInterface.ORIENTATION_ROTATE_180 -> 180f
+        ExifInterface.ORIENTATION_ROTATE_270 -> 270f
+        else -> 0f
+    }
+    if (rotation == 0f) raw
+    else {
+        val matrix = Matrix().apply { postRotate(rotation) }
+        Bitmap.createBitmap(raw, 0, 0, raw.width, raw.height, matrix, true)
+    }
+} catch (e: Exception) { null }
 
 class RideSummaryActivity : ComponentActivity() {
 
@@ -51,22 +82,14 @@ class RideSummaryActivity : ComponentActivity() {
             finish()
             return
         }
-        val finalTip = when {
-            session.harshAccelerationCount >= session.harshBrakingCount &&
-                    session.harshAccelerationCount >= session.unstableRideCount &&
-                    session.harshAccelerationCount > 0 ->
-                "Accelerate smoothly to save fuel"
-
-            session.harshBrakingCount >= session.unstableRideCount &&
-                    session.harshBrakingCount > 0 ->
-                "Maintain distance and brake gradually"
-
-            session.unstableRideCount > 0 ->
-                "Drive steadily and avoid sudden movements"
-
-            else ->
-                "Driving smoothly. Keep it up!"
-        }
+        val finalTip = com.teledrive.app.intelligence.InsightEngine.generateTripInsight(
+            score         = session.finalScore,
+            accelCount    = session.harshAccelerationCount,
+            brakeCount    = session.harshBrakingCount,
+            unstableCount = session.unstableRideCount,
+            distanceKm    = session.distanceKm.toDouble(),
+            durationMs    = session.rideDuration
+        )
 
         // 🛡️ CRITICAL FIX: Extract data from Intent (Sent by SensorService)
         val fuelUsed = intent.getFloatExtra("fuelUsed", 0.0f)
@@ -83,10 +106,9 @@ class RideSummaryActivity : ComponentActivity() {
         val avgSpeed = if (totalSeconds > 0) finalDistance / (totalSeconds / 3600f) else 0f
 
         val scoreColor = when {
-            finalScore >= 90 -> Color(0xFF00FFA3)
-            finalScore >= 75 -> Color(0xFF00E5FF)
-            finalScore >= 60 -> Color(0xFFFFD60A)
-            else -> Color(0xFFFF2D55)
+            finalScore >= 90 -> Color(0xFF00FFA3)  // Green
+            finalScore >= 75 -> Color(0xFFFFD60A)  // Yellow
+            else             -> Color(0xFFFF2D55)  // Red
         }
         setContent {
             SummaryScreen(
@@ -100,9 +122,9 @@ class RideSummaryActivity : ComponentActivity() {
                 ),
                 moneyLost = moneyLost,
                 events = listOf(
-                    "Harsh Acceleration" to session.harshAccelerationCount,
-                    "Harsh Braking" to session.harshBrakingCount,
-                    "Instability" to session.unstableRideCount
+                    "⚡  Harsh Acceleration" to session.harshAccelerationCount,
+                    "🛑  Harsh Braking" to session.harshBrakingCount,
+                    "⚠️  Instability" to session.unstableRideCount
                 ),
                 imagePath = imagePath,
                 tip = finalTip, // 👈 ADD THIS
@@ -125,14 +147,25 @@ fun SummaryScreen(
     onClose: () -> Unit
 ) {
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
 
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .background(Color(0xFF070B14))) {
-        // Blurred Background Glow
-        Canvas(modifier = Modifier
+    val evidenceCount by produceState(initialValue = 0) {
+        value = withContext(Dispatchers.IO) { EvidenceManager.getCount(context) }
+    }
+
+    val evidenceImage by produceState<Bitmap?>(null, imagePath) {
+        value = withContext(Dispatchers.IO) {
+            if (imagePath == null) null else loadCorrectedBitmap(imagePath)
+        }
+    }
+
+    Box(
+        modifier = Modifier
             .fillMaxSize()
-            .blur(100.dp)) {
+            .background(Color(0xFF070B14))
+    ) {
+        // ── Blurred background glow ────────────────────────────────────────
+        Canvas(modifier = Modifier.fillMaxSize().blur(100.dp)) {
             drawCircle(
                 brush = Brush.radialGradient(listOf(scoreColor.copy(0.15f), Color.Transparent)),
                 radius = 1200f,
@@ -140,14 +173,15 @@ fun SummaryScreen(
             )
         }
 
+        // ── Scrollable content ─────────────────────────────────────────────
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
+                .padding(bottom = 24.dp)
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
-        )
-        {
+        ) {
             Text(
                 text = "TELEDRIVE",
                 color = Color.White,
@@ -250,12 +284,22 @@ fun SummaryScreen(
                             )
                         }
                     }
+                    if (events.all { it.second == 0 }) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            "\u2713  Smooth and controlled ride",
+                            color = Color(0xFF00FFA3),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
                 }
             }
             val tipColor = when {
                 tip?.contains("Accelerate", ignoreCase = true) == true -> Color(0xFFFFD60A) // Yellow
-                tip?.contains("brake", ignoreCase = true) == true -> Color(0xFFFF2D55) // Red
-                tip?.contains("steady", ignoreCase = true) == true -> Color(0xFF00E5FF) // Cyan
+                tip?.contains("braking", ignoreCase = true) == true -> Color(0xFFFF2D55) // Red
+                tip?.contains("vibrations", ignoreCase = true) == true -> Color(0xFF00E5FF) // Cyan
+                tip?.contains("steadily", ignoreCase = true) == true -> Color(0xFF00E5FF) // Cyan
                 else -> Color(0xFF00FFA3) // Green
             }
             // --- DRIVING INSIGHT ---
@@ -279,7 +323,7 @@ fun SummaryScreen(
                     shape = RoundedCornerShape(20.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(1.dp, tipColor.copy(alpha = 0.03f), RoundedCornerShape(20.dp))
+                        .border(1.dp, tipColor.copy(alpha = 0.2f), RoundedCornerShape(20.dp))
                 ) {
                     Text(
                         text = tip,
@@ -292,39 +336,53 @@ fun SummaryScreen(
             }
 
             // --- EVIDENCE IMAGE ---
-            imagePath?.let { path ->
-                val bitmap = try {
-                    BitmapFactory.decodeFile(path)?.let {
-                        val matrix = Matrix().apply { postRotate(90f) }
-                        Bitmap.createBitmap(it, 0, 0, it.width, it.height, matrix, true)
-                    }
-                } catch (e: Exception) { null }
-
-                bitmap?.let {
-                    Spacer(modifier = Modifier.height(40.dp))
-                    Text("EVENT EVIDENCE", Modifier.align(Alignment.Start), color = Color.White.copy(0.4f), fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Image(
-                        bitmap = it.asImageBitmap(), contentDescription = "Evidence",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(240.dp)
-                            .clip(RoundedCornerShape(24.dp))
-                            .border(1.dp, Color.White.copy(0.08f), RoundedCornerShape(24.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-                }
+            evidenceImage?.let { bmp ->
+                Spacer(modifier = Modifier.height(40.dp))
+                Text(
+                    "EVENT EVIDENCE",
+                    modifier = Modifier.align(Alignment.Start),
+                    color = Color.White.copy(0.4f),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 2.sp
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Image(
+                    bitmap = bmp.asImageBitmap(),
+                    contentDescription = "Evidence",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(16f / 9f)
+                        .clip(RoundedCornerShape(16.dp))
+                        .border(1.dp, Color.White.copy(0.08f), RoundedCornerShape(16.dp)),
+                    contentScale = ContentScale.Crop
+                )
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            val context = LocalContext.current
+            if (evidenceCount > 0) {
+                Button(
+                    onClick = { context.startActivity(Intent(context, EventEvidenceActivity::class.java)) },
+                    modifier = Modifier.fillMaxWidth().height(54.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1C2333)),
+                    border = BorderStroke(1.dp, Color(0xFF00E5FF).copy(0.3f))
+                ) {
+                    Text(
+                        text = "\uD83D\uDCF8  Event Evidence ($evidenceCount event${if (evidenceCount != 1) "s" else ""})",
+                        color = Color(0xFF00E5FF),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+            }
 
             Button(
                 onClick = {
                     val intent = Intent(context, TripDetailsActivity::class.java)
                     context.startActivity(intent)
-
                     if (context is Activity) {
                         context.overridePendingTransition(
                             R.anim.slide_in_right,
@@ -332,37 +390,32 @@ fun SummaryScreen(
                         )
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(60.dp),
+                modifier = Modifier.fillMaxWidth().height(54.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF111827)
-                )
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF111827))
             ) {
                 Text(
-                    text = "VIEW TRIP HISTORY",
+                    "VIEW TRIP HISTORY",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp
                 )
             }
-            Spacer(modifier = Modifier.height(16.dp))
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             Button(
                 onClick = onClose,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(60.dp),
+                modifier = Modifier.fillMaxWidth().height(54.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White)
             ) {
                 Text("BACK TO DASHBOARD", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             }
-            Spacer(modifier = Modifier.height(60.dp))
-        }
 
-    }
+            Spacer(modifier = Modifier.height(32.dp))
+        } // end scrollable Column
+    } // end root Box
 }
 @Composable
 fun StatCard(label: String, value: String, modifier: Modifier) {
@@ -515,42 +568,126 @@ fun PremiumScoreGraph(trips: List<TripSummary>, modifier: Modifier = Modifier) {
 @Composable
 fun TripHistoryItem(trip: TripSummary) {
     val scoreColor = when {
-        trip.score >= 85 -> Color(0xFF00FFA3)
-        trip.score >= 70 -> Color(0xFF00E5FF)
-        else -> Color(0xFFFF2D55)
+        trip.score >= 90 -> Color(0xFF00FFA3)  // Green
+        trip.score >= 75 -> Color(0xFFFFD60A)  // Yellow
+        else             -> Color(0xFFFF2D55)  // Red
+    }
+    
+    // Format duration
+    val durationMinutes = (trip.durationMs / 1000 / 60).toInt()
+    val durationSeconds = ((trip.durationMs / 1000) % 60).toInt()
+    val durationText = if (durationMinutes > 0) {
+        "${durationMinutes}m ${durationSeconds}s"
+    } else {
+        "${durationSeconds}s"
     }
 
-    Row(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(vertical = 8.dp),
+        color = Color.White.copy(0.03f),
+        shape = RoundedCornerShape(20.dp)
     ) {
-        Box(
+        Row(
             modifier = Modifier
-                .size(44.dp)
-                .background(scoreColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
-                .border(1.dp, scoreColor.copy(alpha = 0.2f), RoundedCornerShape(12.dp)),
-            contentAlignment = Alignment.Center
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("${trip.score}", color = scoreColor, fontWeight = FontWeight.Bold)
-        }
+            // Score Badge
+            Box(
+                modifier = Modifier
+                    .size(60.dp)
+                    .background(scoreColor.copy(alpha = 0.15f), CircleShape)
+                    .border(2.dp, scoreColor.copy(alpha = 0.3f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        "${trip.score}",
+                        color = scoreColor,
+                        fontWeight = FontWeight.Black,
+                        fontSize = 20.sp
+                    )
+                    Text(
+                        "SCORE",
+                        color = scoreColor.copy(0.6f),
+                        fontSize = 8.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
 
-        Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(16.dp))
 
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                "%.2f km Trip".format(trip.distanceKm),   // ✅ FIXED
-                color = Color.White,
-                fontWeight = FontWeight.SemiBold
-            )
+            // Trip Details
+            Column(modifier = Modifier.weight(1f)) {
+                // FROM → TO
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        trip.startLocationName ?: "Unknown Location",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        " → ",
+                        color = Color(0xFF00FFA3),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp
+                    )
+                    Text(
+                        trip.endLocationName ?: "Unknown Location",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
 
-            Text(
-                SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault())
-                    .format(Date(trip.timestamp)),
-                color = Color.White.copy(alpha = 0.5f),
-                fontSize = 12.sp
-            )
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // Distance & Duration
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        "%.2f km".format(trip.distanceKm),
+                        color = Color.White.copy(0.6f),
+                        fontSize = 12.sp
+                    )
+                    Text(
+                        " • ",
+                        color = Color.White.copy(0.3f),
+                        fontSize = 12.sp
+                    )
+                    Text(
+                        durationText,
+                        color = Color.White.copy(0.6f),
+                        fontSize = 12.sp
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Driving Insight (tip)
+                trip.tip?.let { tip ->
+                    Text(
+                        text = "\"$tip\"",
+                        color = Color(0xFF00FFA3).copy(0.7f),
+                        fontSize = 11.sp,
+                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                        maxLines = 1
+                    )
+                }
+            }
         }
     }
 }

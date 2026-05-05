@@ -1,0 +1,85 @@
+<mxfile host="app.diagrams.net">
+  <diagram id="cnn_architecture" name="1D-CNN Architecture">
+    <mxGraphModel dx="1543" dy="1000" grid="1" gridSize="5" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="1000" background="#FFFFFF" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=14;fontStyle=1;fontFamily=Arial;" value="1D-CNN Model Architecture for Time-Series Driving Event Classification" vertex="1">
+          <mxGeometry height="30" width="540" x="130" y="15" as="geometry" />
+        </mxCell>
+        <mxCell id="input" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;fontSize=11;fontFamily=Arial;verticalAlign=middle;spacing=4;" value="&lt;b style=&quot;font-size:12px&quot;&gt;INPUT LAYER&lt;/b&gt;&lt;br&gt;&lt;br&gt;Input Tensor (1 × 50 × 9)&lt;br&gt;&lt;span style=&quot;font-size:10px&quot;&gt;50 timesteps &amp;nbsp;×&amp;nbsp; 9 features:&lt;/span&gt;&lt;br&gt;&lt;i style=&quot;font-size:9px;color:#555&quot;&gt;(ax, ay, az, gx, gy, gz,&lt;br&gt;acc_mag, jerk_mag, speed)&lt;/i&gt;" vertex="1">
+          <mxGeometry height="100" width="480" x="160" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="conv1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#333333;fontSize=10;fontFamily=Arial;verticalAlign=middle;spacing=4;" value="&lt;b&gt;CONVOLUTION BLOCK 1&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:9px&quot;&gt;Conv1D (64 filters, kernel=3) → BatchNorm → ReLU → Dropout (0.3)&lt;/span&gt;" vertex="1">
+          <mxGeometry height="55" width="440" x="180" y="195" as="geometry" />
+        </mxCell>
+        <mxCell id="conv2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#333333;fontSize=10;fontFamily=Arial;verticalAlign=middle;spacing=4;" value="&lt;b&gt;CONVOLUTION BLOCK 2&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:9px&quot;&gt;Conv1D (128 filters, kernel=3) → BatchNorm → ReLU → Dropout (0.3)&lt;/span&gt;" vertex="1">
+          <mxGeometry height="55" width="440" x="180" y="285" as="geometry" />
+        </mxCell>
+        <mxCell id="conv3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#333333;fontSize=10;fontFamily=Arial;verticalAlign=middle;spacing=4;" value="&lt;b&gt;CONVOLUTION BLOCK 3&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:9px&quot;&gt;Conv1D (256 filters, kernel=3) → BatchNorm → ReLU → Dropout (0.3)&lt;/span&gt;" vertex="1">
+          <mxGeometry height="55" width="440" x="180" y="375" as="geometry" />
+        </mxCell>
+        <mxCell id="pool" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E6E6E6;strokeColor=#333333;fontSize=10;fontFamily=Arial;verticalAlign=middle;spacing=4;" value="&lt;b style=&quot;font-size:11px&quot;&gt;Global Average Pooling&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:9px;color:#555&quot;&gt;Temporal Feature Aggregation&lt;/i&gt;" vertex="1">
+          <mxGeometry height="50" width="360" x="220" y="465" as="geometry" />
+        </mxCell>
+        <mxCell id="dense1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#333333;fontSize=10;fontFamily=Arial;verticalAlign=middle;spacing=4;" value="&lt;b&gt;DENSE BLOCK 1&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:9px&quot;&gt;Dense (128 neurons) → ReLU → Dropout (0.4)&lt;/span&gt;" vertex="1">
+          <mxGeometry height="50" width="400" x="200" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="dense2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#333333;fontSize=10;fontFamily=Arial;verticalAlign=middle;spacing=4;" value="&lt;b&gt;DENSE BLOCK 2&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:9px&quot;&gt;Dense (64 neurons) → ReLU&lt;/span&gt;" vertex="1">
+          <mxGeometry height="50" width="360" x="220" y="635" as="geometry" />
+        </mxCell>
+        <mxCell id="output_layer" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;fontSize=10;fontFamily=Arial;verticalAlign=middle;spacing=4;" value="&lt;b style=&quot;font-size:11px&quot;&gt;OUTPUT LAYER&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:10px&quot;&gt;Dense (4 neurons) → Softmax&lt;/span&gt;" vertex="1">
+          <mxGeometry height="50" width="360" x="220" y="720" as="geometry" />
+        </mxCell>
+        <mxCell id="classes" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;fontSize=10;fontFamily=Arial;strokeWidth=2;verticalAlign=middle;spacing=4;" value="&lt;b style=&quot;font-size:11px&quot;&gt;Output Classes (Predicted Driving Event)&lt;/b&gt;&lt;br&gt;&lt;br&gt;&lt;span style=&quot;font-size:10px&quot;&gt;NORMAL &amp;nbsp;&amp;nbsp;|&amp;nbsp;&amp;nbsp; HARSH_ACCELERATION&lt;br&gt;HARSH_BRAKING &amp;nbsp;&amp;nbsp;|&amp;nbsp;&amp;nbsp; UNSTABLE_RIDE&lt;/span&gt;" vertex="1">
+          <mxGeometry height="70" width="480" x="160" y="805" as="geometry" />
+        </mxCell>
+        <mxCell id="context_note" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=8;fontFamily=Arial;fontColor=#666666;" value="&lt;i&gt;Model output is passed to EventDetector for validation (3/5 confirmation rule)&lt;/i&gt;" vertex="1">
+          <mxGeometry height="20" width="480" x="160" y="888" as="geometry" />
+        </mxCell>
+        <mxCell id="caption" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=9;fontFamily=Arial;fontColor=#333333;" value="&lt;i&gt;Figure 6: 1D-CNN architecture for time-series driving event classification in the TeleDrive system.&lt;/i&gt;" vertex="1">
+          <mxGeometry height="25" width="600" x="100" y="920" as="geometry" />
+        </mxCell>
+        <mxCell id="side_header" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=10;fontStyle=1;fontFamily=Arial;" value="&lt;b&gt;Training &amp;amp; Deployment Details&lt;/b&gt;" vertex="1">
+          <mxGeometry height="20" width="230" x="715" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="ann_config" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#999999;fontSize=9;dashed=1;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;spacingRight=8;fontFamily=Arial;" value="&lt;b style=&quot;font-size:9px&quot;&gt;Model Configuration&lt;/b&gt;&lt;br&gt;&lt;hr size=&quot;1&quot;&gt;&lt;span style=&quot;font-size:8px&quot;&gt;Optimizer: Adam (LR = 0.001)&lt;br&gt;Loss: Sparse Categorical Crossentropy&lt;br&gt;Deployment: TensorFlow Lite&lt;br&gt;(On-device inference)&lt;/span&gt;" vertex="1">
+          <mxGeometry height="100" width="230" x="720" y="465" as="geometry" />
+        </mxCell>
+        <mxCell id="ann_perf" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#999999;fontSize=9;dashed=1;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;spacingRight=8;fontFamily=Arial;" value="&lt;b style=&quot;font-size:9px&quot;&gt;Performance Metrics&lt;/b&gt;&lt;br&gt;&lt;hr size=&quot;1&quot;&gt;&lt;span style=&quot;font-size:8px&quot;&gt;Test Accuracy: &lt;b&gt;96%&lt;/b&gt;&lt;br&gt;Macro F1 Score: &lt;b&gt;92.9%&lt;/b&gt;&lt;/span&gt;" vertex="1">
+          <mxGeometry height="70" width="230" x="720" y="575" as="geometry" />
+        </mxCell>
+        <mxCell id="side_conn" edge="1" parent="1" source="pool" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=none;dashed=1;strokeColor=#999999;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" target="ann_config">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+            <mxPoint x="710" y="490" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="a1" edge="1" parent="1" source="input" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1;" target="conv1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a2" edge="1" parent="1" source="conv1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1;" target="conv2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a3" edge="1" parent="1" source="conv2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1;" target="conv3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a4" edge="1" parent="1" source="conv3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1;" target="pool">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a5" edge="1" parent="1" source="pool" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1;" target="dense1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a6" edge="1" parent="1" source="dense1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1;" target="dense2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a7" edge="1" parent="1" source="dense2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1;" target="output_layer">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a8" edge="1" parent="1" source="output_layer" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;strokeColor=#333333;strokeWidth=1;" target="classes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

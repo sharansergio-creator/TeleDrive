@@ -1,0 +1,457 @@
+﻿<mxfile host="app.diagrams.net">
+  <diagram id="teledrive_class" name="Page-1">
+    <mxGraphModel dx="1426" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="2200" pageHeight="1400" background="#FFFFFF" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" parent="1"
+          style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=14;fontStyle=1;fontColor=#000000;"
+          value="Figure 3.5: Class Diagram (Core Domain) of the Proposed TeleDrive System"
+          vertex="1">
+          <mxGeometry x="100" y="16" width="2000" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================================ -->
+        <!-- ROW 1: Interface + SensorService                             -->
+        <!-- ============================================================ -->
+
+        <!-- «interface» DrivingAnalyzer -->
+        <mxCell id="iface_da_hdr" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#000000;strokeWidth=2;fontStyle=3;fontSize=10;align=center;verticalAlign=middle;fontColor=#000000;"
+          value="«interface»&lt;br&gt;&lt;b&gt;DrivingAnalyzer&lt;/b&gt;" vertex="1">
+          <mxGeometry x="60" y="70" width="240" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="iface_da_ops" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;"
+          value="+analyze(features: FeatureVector,&lt;br&gt;&amp;nbsp;&amp;nbsp;speed: Float): DrivingEvent"
+          vertex="1">
+          <mxGeometry x="60" y="114" width="240" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- SensorService -->
+        <mxCell id="ss_hdr" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=11;align=center;verticalAlign=middle;"
+          value="SensorService" vertex="1">
+          <mxGeometry x="680" y="70" width="280" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="ss_note" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#000000;strokeWidth=2;fontStyle=2;fontSize=9;align=center;verticalAlign=middle;"
+          value="extends Service, implements SensorEventListener" vertex="1">
+          <mxGeometry x="680" y="106" width="280" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="ss_fields" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;"
+          value="-windowBuffer: MutableList&lt;SensorSample&gt;&lt;br&gt;-windowStartTime: Long" vertex="1">
+          <mxGeometry x="680" y="126" width="280" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="ss_sep1" parent="1"
+          style="line;html=1;strokeColor=#000000;strokeWidth=1;" vertex="1">
+          <mxGeometry x="680" y="168" width="280" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="ss_ops" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;"
+          value="+onCreate()&lt;br&gt;+onSensorChanged(event: SensorEvent)&lt;br&gt;+processWindow(window: List&lt;SensorSample&gt;)" vertex="1">
+          <mxGeometry x="680" y="176" width="280" height="56" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================================ -->
+        <!-- ROW 2: Processing classes                                     -->
+        <!-- ============================================================ -->
+
+        <!-- TeleDriveProcessor -->
+        <mxCell id="tdp_hdr" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=11;align=center;verticalAlign=middle;"
+          value="TeleDriveProcessor" vertex="1">
+          <mxGeometry x="60" y="340" width="240" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="tdp_ops" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;"
+          value="+extractFeatures(window:&lt;br&gt;&amp;nbsp;&amp;nbsp;List&lt;SensorSample&gt;): FeatureVector&lt;br&gt;-median(values: List&lt;Float&gt;): Float" vertex="1">
+          <mxGeometry x="60" y="376" width="240" height="56" as="geometry" />
+        </mxCell>
+
+        <!-- AnalyzerProvider -->
+        <mxCell id="ap_hdr" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=11;align=center;verticalAlign=middle;"
+          value="AnalyzerProvider" vertex="1">
+          <mxGeometry x="360" y="340" width="240" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="ap_ops" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;"
+          value="+getAnalyzer(mode: AnalysisMode):&lt;br&gt;&amp;nbsp;&amp;nbsp;DrivingAnalyzer" vertex="1">
+          <mxGeometry x="360" y="376" width="240" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- EventDetector -->
+        <mxCell id="ed_hdr" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=11;align=center;verticalAlign=middle;"
+          value="EventDetector" vertex="1">
+          <mxGeometry x="680" y="340" width="240" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="ed_fields" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;"
+          value="-accelBuffer: ArrayDeque&lt;Float&gt;&lt;br&gt;-brakeBuffer: ArrayDeque&lt;Float&gt;&lt;br&gt;-speedBuffer: ArrayDeque&lt;Float&gt;" vertex="1">
+          <mxGeometry x="680" y="376" width="240" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="ed_ops" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;"
+          value="+detectEvent(features: FeatureVector,&lt;br&gt;&amp;nbsp;&amp;nbsp;speedKmH: Float): DrivingEvent" vertex="1">
+          <mxGeometry x="680" y="432" width="240" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- EcoScoreEngine -->
+        <mxCell id="ese_hdr" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=11;align=center;verticalAlign=middle;"
+          value="EcoScoreEngine" vertex="1">
+          <mxGeometry x="990" y="340" width="240" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="ese_fields" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;"
+          value="-score: Int&lt;br&gt;-accelCount: Int&lt;br&gt;-brakeCount: Int&lt;br&gt;-unstableCount: Int" vertex="1">
+          <mxGeometry x="990" y="376" width="240" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="ese_ops" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;"
+          value="+processEvent(event: DrivingEvent): Int&lt;br&gt;+getScore(): Int" vertex="1">
+          <mxGeometry x="990" y="446" width="240" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- FuelEstimator -->
+        <mxCell id="fe_hdr" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=11;align=center;verticalAlign=middle;"
+          value="FuelEstimator" vertex="1">
+          <mxGeometry x="1300" y="340" width="220" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="fe_ops" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;"
+          value="+update()&lt;br&gt;+getFuelUsed(): Double&lt;br&gt;+getFinancialLoss(): Double" vertex="1">
+          <mxGeometry x="1300" y="376" width="220" height="56" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================================ -->
+        <!-- ROW 3: Analyzer implementations + ML helpers                 -->
+        <!-- ============================================================ -->
+
+        <!-- RuleBasedAnalyzer -->
+        <mxCell id="rba_hdr" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=11;align=center;verticalAlign=middle;"
+          value="RuleBasedAnalyzer" vertex="1">
+          <mxGeometry x="60" y="600" width="240" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="rba_note" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;strokeWidth=2;fontStyle=2;fontSize=9;align=center;verticalAlign=middle;"
+          value="implements DrivingAnalyzer" vertex="1">
+          <mxGeometry x="60" y="636" width="240" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="rba_ops" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;"
+          value="+analyze(features: FeatureVector,&lt;br&gt;&amp;nbsp;&amp;nbsp;speed: Float): DrivingEvent" vertex="1">
+          <mxGeometry x="60" y="656" width="240" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- MLAnalyzer -->
+        <mxCell id="mla_hdr" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=11;align=center;verticalAlign=middle;"
+          value="MLAnalyzer" vertex="1">
+          <mxGeometry x="360" y="600" width="240" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="mla_note" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#000000;strokeWidth=2;fontStyle=2;fontSize=9;align=center;verticalAlign=middle;"
+          value="implements DrivingAnalyzer" vertex="1">
+          <mxGeometry x="360" y="636" width="240" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="mla_fields" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;"
+          value="-sensorWindowBuffer: ArrayDeque&lt;SensorSample&gt;" vertex="1">
+          <mxGeometry x="360" y="656" width="240" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="mla_ops" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;"
+          value="+addSensorSample(sample: SensorSample)&lt;br&gt;+analyze(features: FeatureVector,&lt;br&gt;&amp;nbsp;&amp;nbsp;speed: Float): DrivingEvent" vertex="1">
+          <mxGeometry x="360" y="684" width="240" height="56" as="geometry" />
+        </mxCell>
+
+        <!-- ModelHelper -->
+        <mxCell id="mh_hdr" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=11;align=center;verticalAlign=middle;"
+          value="ModelHelper" vertex="1">
+          <mxGeometry x="680" y="600" width="220" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="mh_ops" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;"
+          value="+predict(input:&lt;br&gt;&amp;nbsp;&amp;nbsp;Array&lt;Array&lt;FloatArray&gt;&gt;): FloatArray" vertex="1">
+          <mxGeometry x="680" y="636" width="220" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Scaler -->
+        <mxCell id="sc_hdr" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=11;align=center;verticalAlign=middle;"
+          value="Scaler" vertex="1">
+          <mxGeometry x="960" y="600" width="200" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="sc_ops" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;"
+          value="+normalize(raw: FloatArray): FloatArray" vertex="1">
+          <mxGeometry x="960" y="636" width="200" height="28" as="geometry" />
+        </mxCell>
+
+        <!-- LabelMapper -->
+        <mxCell id="lm_hdr" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=11;align=center;verticalAlign=middle;"
+          value="LabelMapper" vertex="1">
+          <mxGeometry x="1220" y="600" width="200" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="lm_ops" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;"
+          value="+getLabel(index: Int): String" vertex="1">
+          <mxGeometry x="1220" y="636" width="200" height="28" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================================ -->
+        <!-- ROW 4: Data/model classes                                     -->
+        <!-- ============================================================ -->
+
+        <!-- SensorSample -->
+        <mxCell id="samp_hdr" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=11;align=center;verticalAlign=middle;"
+          value="«data class»&lt;br&gt;SensorSample" vertex="1">
+          <mxGeometry x="60" y="880" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="samp_fields" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;"
+          value="timestamp, ax, ay, az,&lt;br&gt;gx, gy, gz, heading, speed" vertex="1">
+          <mxGeometry x="60" y="924" width="220" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- FeatureVector -->
+        <mxCell id="fv_hdr" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=11;align=center;verticalAlign=middle;"
+          value="«data class»&lt;br&gt;FeatureVector" vertex="1">
+          <mxGeometry x="360" y="880" width="240" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="fv_fields" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;"
+          value="meanForwardAccel, peakForwardAccel,&lt;br&gt;minForwardAccel, stdAccel,&lt;br&gt;meanGyro, peakGyro, gyroStd" vertex="1">
+          <mxGeometry x="360" y="924" width="240" height="56" as="geometry" />
+        </mxCell>
+
+        <!-- DrivingEvent -->
+        <mxCell id="de_hdr" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=11;align=center;verticalAlign=middle;"
+          value="«data class»&lt;br&gt;DrivingEvent" vertex="1">
+          <mxGeometry x="680" y="880" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="de_fields" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;"
+          value="type: DrivingEventType&lt;br&gt;severity: Float&lt;br&gt;confidence: Float&lt;br&gt;source: String" vertex="1">
+          <mxGeometry x="680" y="924" width="220" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- DrivingEventType enum -->
+        <mxCell id="det_hdr" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=11;align=center;verticalAlign=middle;"
+          value="«enumeration»&lt;br&gt;DrivingEventType" vertex="1">
+          <mxGeometry x="980" y="880" width="220" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="det_fields" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;"
+          value="NORMAL&lt;br&gt;HARSH_ACCELERATION&lt;br&gt;HARSH_BRAKING&lt;br&gt;UNSTABLE_RIDE" vertex="1">
+          <mxGeometry x="980" y="924" width="220" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- LiveDataBus -->
+        <mxCell id="ldb_hdr" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#000000;strokeWidth=2;fontStyle=1;fontSize=11;align=center;verticalAlign=middle;"
+          value="LiveDataBus" vertex="1">
+          <mxGeometry x="1600" y="340" width="220" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="ldb_ops" parent="1"
+          style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;"
+          value="+emit(event: DrivingEvent,&lt;br&gt;&amp;nbsp;&amp;nbsp;speed: Float, score: Int)" vertex="1">
+          <mxGeometry x="1600" y="376" width="220" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================================ -->
+        <!-- RELATIONSHIPS                                                  -->
+        <!-- ============================================================ -->
+
+        <!-- SensorService --uses--> TeleDriveProcessor (dashed arrow) -->
+        <mxCell id="r_ss_tdp" parent="1"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=open;endFill=0;startArrow=none;strokeColor=#000000;strokeWidth=1.5;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+          value="«uses»" edge="1" source="ss_fields" target="tdp_hdr">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="620" y="147" />
+              <mxPoint x="180" y="147" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- SensorService --uses--> AnalyzerProvider -->
+        <mxCell id="r_ss_ap" parent="1"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=open;endFill=0;startArrow=none;strokeColor=#000000;strokeWidth=1.5;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+          value="«uses»" edge="1" source="ss_hdr" target="ap_hdr">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- SensorService --uses--> EventDetector -->
+        <mxCell id="r_ss_ed" parent="1"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=open;endFill=0;startArrow=none;strokeColor=#000000;strokeWidth=1.5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+          value="«uses»" edge="1" source="ss_hdr" target="ed_hdr">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- SensorService --uses--> EcoScoreEngine -->
+        <mxCell id="r_ss_ese" parent="1"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=open;endFill=0;startArrow=none;strokeColor=#000000;strokeWidth=1.5;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+          value="«uses»" edge="1" source="ss_hdr" target="ese_hdr">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- SensorService --uses--> FuelEstimator -->
+        <mxCell id="r_ss_fe" parent="1"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=open;endFill=0;startArrow=none;strokeColor=#000000;strokeWidth=1.5;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+          value="«uses»" edge="1" source="ss_ops" target="fe_hdr">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1020" y="204" />
+              <mxPoint x="1410" y="204" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- SensorService --emits via--> LiveDataBus -->
+        <mxCell id="r_ss_ldb" parent="1"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=open;endFill=0;startArrow=none;strokeColor=#000000;strokeWidth=1.5;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+          value="«emits via»" edge="1" source="ss_hdr" target="ldb_hdr">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1020" y="123" />
+              <mxPoint x="1540" y="123" />
+              <mxPoint x="1540" y="358" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- AnalyzerProvider --creates--> RuleBasedAnalyzer -->
+        <mxCell id="r_ap_rba" parent="1"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=open;endFill=0;startArrow=none;strokeColor=#000000;strokeWidth=1.5;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+          value="«creates»" edge="1" source="ap_hdr" target="rba_hdr">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- AnalyzerProvider --creates--> MLAnalyzer -->
+        <mxCell id="r_ap_mla" parent="1"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=open;endFill=0;startArrow=none;strokeColor=#000000;strokeWidth=1.5;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+          value="«creates»" edge="1" source="ap_hdr" target="mla_hdr">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- RuleBasedAnalyzer --realises--> DrivingAnalyzer (hollow triangle) -->
+        <mxCell id="r_rba_iface" parent="1"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=block;endFill=0;startArrow=none;strokeColor=#000000;strokeWidth=1.5;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.2;entryY=1;entryDx=0;entryDy=0;"
+          value="«realises»" edge="1" source="rba_hdr" target="iface_da_hdr">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="180" y="540" />
+              <mxPoint x="180" y="280" />
+              <mxPoint x="108" y="280" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- MLAnalyzer --realises--> DrivingAnalyzer -->
+        <mxCell id="r_mla_iface" parent="1"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=block;endFill=0;startArrow=none;strokeColor=#000000;strokeWidth=1.5;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.8;entryY=1;entryDx=0;entryDy=0;"
+          value="«realises»" edge="1" source="mla_hdr" target="iface_da_hdr">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="480" y="540" />
+              <mxPoint x="480" y="300" />
+              <mxPoint x="252" y="300" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- MLAnalyzer --uses--> ModelHelper -->
+        <mxCell id="r_mla_mh" parent="1"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=open;endFill=0;startArrow=none;strokeColor=#000000;strokeWidth=1.5;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+          value="«uses»" edge="1" source="mla_ops" target="mh_hdr">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- MLAnalyzer --uses--> Scaler -->
+        <mxCell id="r_mla_sc" parent="1"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=open;endFill=0;startArrow=none;strokeColor=#000000;strokeWidth=1.5;exitX=1;exitY=0.7;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+          value="«uses»" edge="1" source="mla_ops" target="sc_hdr">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="660" y="726" />
+              <mxPoint x="900" y="726" />
+              <mxPoint x="900" y="618" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- MLAnalyzer --uses--> LabelMapper -->
+        <mxCell id="r_mla_lm" parent="1"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=open;endFill=0;startArrow=none;strokeColor=#000000;strokeWidth=1.5;exitX=1;exitY=0.9;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+          value="«uses»" edge="1" source="mla_ops" target="lm_hdr">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="660" y="736" />
+              <mxPoint x="1160" y="736" />
+              <mxPoint x="1160" y="618" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- DrivingEvent --has--> DrivingEventType (composition solid diamond) -->
+        <mxCell id="r_de_det" parent="1"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=0;startArrow=diamond;startFill=1;strokeColor=#000000;strokeWidth=1.5;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+          value="1" edge="1" source="de_fields" target="det_hdr">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- TeleDriveProcessor --produces--> FeatureVector -->
+        <mxCell id="r_tdp_fv" parent="1"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=open;endFill=0;startArrow=none;strokeColor=#000000;strokeWidth=1.5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+          value="«produces»" edge="1" source="tdp_ops" target="fv_hdr">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="180" y="820" />
+              <mxPoint x="480" y="820" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- EventDetector --produces--> DrivingEvent -->
+        <mxCell id="r_ed_de" parent="1"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=open;endFill=0;startArrow=none;strokeColor=#000000;strokeWidth=1.5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+          value="«produces»" edge="1" source="ed_ops" target="de_hdr">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="800" y="820" />
+              <mxPoint x="790" y="820" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- SensorService --processes--> SensorSample -->
+        <mxCell id="r_ss_samp" parent="1"
+          style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;endArrow=open;endFill=0;startArrow=none;strokeColor=#000000;strokeWidth=1.5;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+          value="«buffers»" edge="1" source="ss_fields" target="samp_hdr">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="620" y="820" />
+              <mxPoint x="170" y="820" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

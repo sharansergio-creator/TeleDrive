@@ -13,6 +13,7 @@ import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.teledrive.app.core.RideSessionManager
+import com.teledrive.app.evidence.EvidenceManager
 import com.teledrive.app.services.SensorService
 import java.io.File
 import java.util.concurrent.ExecutorService
@@ -79,10 +80,9 @@ class CameraControllerActivity : AppCompatActivity() {
     private fun takePhoto(eventType: String) {
         val imageCapture = imageCapture ?: return
 
-        val file = File(
-            getExternalFilesDir(null),
-            "evidence_${System.currentTimeMillis()}.jpg"
-        )
+        // Save into the dedicated evidence directory using the canonical filename:
+        // event_<typeSlug>_<epochMs>.jpg  — parsed by EvidenceManager.parseFile()
+        val file = EvidenceManager.newEvidenceFile(this, eventType)
 
         val outputOptions = ImageCapture.OutputFileOptions.Builder(file).build()
 

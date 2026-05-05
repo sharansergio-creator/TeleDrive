@@ -39,48 +39,54 @@ class LiveTripActivity : ComponentActivity() {
             var liveEvent by remember { mutableStateOf("NORMAL") }
             var liveSpeed by remember { mutableStateOf(0f) }
             var liveStd by remember { mutableStateOf(0f) }
-
             var currentTip by remember { mutableStateOf<String?>(null) }
+            var liveConfidence by remember { mutableStateOf(0f) }
+            var liveSource by remember { mutableStateOf("RULE") }
 
             DisposableEffect(Unit) {
                 val handler = android.os.Handler(android.os.Looper.getMainLooper())
                 var resetRunnable: Runnable? = null
 
-                LiveDataBus.listener = { event, speed, std, tip->
+                LiveDataBus.listener = { event, speed, std, tip, confidence, source ->
 
-                    Log.d("TIP_DEBUG_UI", "Received Tip=$tip")
+                    Log.d("TIP_DEBUG_UI", "Received Tip=$tip  conf=$confidence  src=$source")
 
-                    liveSpeed = speed.coerceAtLeast(0f)
-                    liveStd = std
-                    currentTip = tip
+                    liveSpeed      = speed.coerceAtLeast(0f)
+                    liveStd        = std
+                    currentTip     = tip
+                    liveConfidence = confidence
+                    liveSource     = source
 
                     if (event != "NORMAL") {
                         liveEvent = event
 
-                        // cancel previous reset safely
                         resetRunnable?.let { handler.removeCallbacks(it) }
 
                         resetRunnable = Runnable {
-                            liveEvent = "NORMAL"
-                            currentTip = null
+                            liveEvent      = "NORMAL"
+                            currentTip     = null
+                            liveConfidence = 0f
                         }
 
                         handler.postDelayed(resetRunnable!!, 2000)
 
                     } else {
-                        liveEvent = "NORMAL"
-                        currentTip = null
+                        liveEvent      = "NORMAL"
+                        currentTip     = null
+                        liveConfidence = 0f
                     }
                 }
                 onDispose { LiveDataBus.listener = null }
             }
 
             PremiumLiveTripScreen(
-                event = liveEvent,
-                speed = liveSpeed,
-                std = liveStd,
-                tip = currentTip,
-                onEndTrip = {
+                event      = liveEvent,
+                speed      = liveSpeed,
+                std        = liveStd,
+                tip        = currentTip,
+                confidence = liveConfidence,
+                source     = liveSource,
+                onEndTrip  = {
                     stopService(Intent(this@LiveTripActivity, SensorService::class.java))
                     finish()
                 }
@@ -94,7 +100,9 @@ fun PremiumLiveTripScreen(
     event: String,
     speed: Float,
     std: Float,
-    tip:String?,
+    tip: String?,
+    confidence: Float = 0f,
+    source: String = "RULE",
     onEndTrip: () -> Unit
 ) {
     Log.d("TIP_DEBUG_SCREEN", "UI Tip=$tip")
@@ -152,6 +160,23 @@ fun PremiumLiveTripScreen(
                     fontWeight = FontWeight.ExtraBold,
                     letterSpacing = 4.sp
                 )
+                // Source + confidence badge (shown only during non-normal events)
+                if (event != "NORMAL" && confidence > 0f) {
+                    Spacer(modifier = Modifier.width(10.dp))
+                    androidx.compose.foundation.layout.Box(
+                        modifier = androidx.compose.ui.Modifier
+                            .background(accentColor.copy(0.18f), androidx.compose.foundation.shape.RoundedCornerShape(6.dp))
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            text = "$source  ${"%.0f".format(confidence * 100)}%",
+                            color = accentColor,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        )
+                    }
+                }
             }
 
             // --- MAIN GAUGE ---

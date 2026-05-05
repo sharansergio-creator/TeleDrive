@@ -1,0 +1,26 @@
+{
+  "version": "v4",
+  "trained_at": "2026-04-06",
+  "n_features": 9,
+  "features": [
+    "ax",
+    "ay",
+    "az",
+    "gx",
+    "gy",
+    "gz",
+    "acc_mag",
+    "jerk_mag",
+    "speed"
+  ],
+  "window_size": 50,
+  "n_classes": 4,
+  "labels": {
+    "0": "NORMAL",
+    "1": "HARSH_ACCELERATION",
+    "2": "HARSH_BRAKING",
+    "3": "UNSTABLE_RIDE"
+  },
+  "test_accuracy": 0.9876,
+  "harsh_accel_recall": 0.975
+}

@@ -27,6 +27,8 @@ class RideSessionManager {
     }
 
     private var currentSession: RideSession? = null
+    private var startLat: Double = 0.0
+    private var startLng: Double = 0.0
 
     private val historyList = mutableListOf<RideSession>()
 
@@ -55,6 +57,15 @@ class RideSessionManager {
             startTime = System.currentTimeMillis()
         )
     }
+    
+    fun setStartLocation(lat: Double, lng: Double) {
+        startLat = lat
+        startLng = lng
+    }
+    
+    fun getStartLocation(): Pair<Double, Double> {
+        return Pair(startLat, startLng)
+    }
 
     fun processEvent(event: DrivingEvent) {
         val session = currentSession ?: return
@@ -76,6 +87,15 @@ class RideSessionManager {
 
     fun updateScore(score: Int) {
         currentSession?.finalScore = score
+    }
+
+    // Increments the UNSTABLE session counter without triggering a score penalty.
+    // Used when the UNSTABLE score cooldown is active: event is recorded for stats
+    // but the eco-score engine is not called.
+    fun incrementUnstableCountOnly() {
+        val session = currentSession ?: return
+        session.eventCount++
+        session.unstableRideCount++
     }
 
     fun endRide(): RideSession? {

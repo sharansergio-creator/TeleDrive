@@ -24,7 +24,10 @@ class LocationService(context: Context) {
 
     private var locationCallback: LocationCallback? = null
 
-    fun getHeading():Float { return lastLocation?.bearing ?:0f}
+    // Returns the GPS bearing in degrees [0, 360) when available.
+    // Returns -1f when GPS has no fix yet.  -1f is the "no-GPS" sentinel.
+    // NOTE: 0f is due-North (a valid heading) and is NOT treated as unavailable.
+    fun getHeading(): Float = lastLocation?.bearing ?: -1f
 
     @SuppressLint("MissingPermission")
     fun startTracking(
@@ -119,4 +122,8 @@ class LocationService(context: Context) {
     }
 
     fun getCurrentSpeed(): Float = currentSpeed
+    
+    fun getLatitude(): Double = lastLocation?.latitude ?: 0.0
+    
+    fun getLongitude(): Double = lastLocation?.longitude ?: 0.0
 }
