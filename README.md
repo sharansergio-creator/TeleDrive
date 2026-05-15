@@ -1,354 +1,246 @@
-# TeleDrive
+# TeleDrive 
 
-TeleDrive is an **AI-powered driving behavior analysis system** for Android devices.  
-The project combines **real-time smartphone sensor processing** with an **on-device TensorFlow Lite model** to classify driving behavior and generate actionable trip analytics.
+> Edge-based riding behaviour analysis for Android — no cloud, no hardware, no subscription.
 
-The system runs **entirely on-device**, making it **offline capable, privacy-friendly, and lightweight**.
+TeleDrive is a standalone Android app that detects harsh acceleration, harsh braking, and unstable riding in real-time using only your smartphone's built-in sensors. All inference runs on-device via a TensorFlow Lite 1D-CNN model. At the end of each trip, you get an eco score, fuel impact estimate, and a route-based event map.
 
----
-
-# Project Overview
-
-TeleDrive analyzes driving style from mobile sensor streams in **near-real-time**.  
-The Android application collects motion and location data, transforms sensor values using exported ML artifacts, and performs inference on sequence windows of shape:
-
-```
-(50 × 8)
-```
-
-The system detects key driving patterns:
-
-- Harsh Acceleration
-- Harsh Braking
-- Instability
-- Normal Driving
-
-Predictions are used to compute a **trip-level driving score** and generate ride summaries and historical insights.
+Built for gig economy riders (Swiggy, Zomato, Zepto) and anyone who wants to understand and improve their riding behaviour — without paying for fleet telematics hardware.
 
 ---
 
-# Key Features
+# Demo
 
-- Real-time sensor ingestion from accelerometer and gyroscope
-- GPS-based trip tracking (distance, speed, duration)
-- On-device TensorFlow Lite inference (fully offline capable)
-- Event classification for driving behavior anomalies
-- Driving score calculation per ride
-- Trip history and ride analytics in Android UI
-- End-to-end ML pipeline for training and model deployment
+> _Screen recording / screenshots coming soon_
 
 ---
 
-# Technology Stack
+#Key Numbers
 
-## Mobile Application
-- Kotlin
-- Android SDK
-- Jetpack Components
-- SensorManager
-- Location Services
-
-## Machine Learning
-- Python
-- TensorFlow / Keras
-- TensorFlow Lite
-- Scikit-learn
-- NumPy
-- Pandas
-
-## Model Architecture
-- 1D Convolutional Neural Network (1D CNN)
+| Metric | Value |
+|---|---|
+| Training samples | 115,250 (class-balanced) |
+| Raw readings collected | 473,800 |
+| Real ride sessions | 48 |
+| Offline accuracy (hold-out set) | 96.0% |
+| Macro F1-score | 0.92 |
+| Real-world validation accuracy | 98.76% |
+| Sensor sampling rate | ~50 Hz |
+| Min Android version | 8.0 (API 26) |
+| Cloud dependency | None |
 
 ---
 
-# System Architecture
+# Features
 
-TeleDrive is organized as a **two-part architecture**:
-
-1. Android Application (Kotlin)
-2. Machine Learning Pipeline (Python)
-
-```mermaid
-flowchart LR
-    A[Smartphone Sensors\nAccelerometer + Gyroscope + GPS] --> B[Android Data Collection Layer\nSensorService + LocationService]
-    B --> C[Preprocessing Layer\nScaler + Sequence Builder]
-    C --> D[TFLite Inference\nModelHelper]
-    D --> E[Behavior Labels\nLabelMapper]
-    E --> F[Scoring Engine\nTrip Metrics + Driving Score]
-    F --> G[UI and Persistence\nLiveTripActivity + RideSummaryActivity + TripHistory]
-
-    H[Raw Dataset] --> I[Python ML Pipeline]
-    I --> J[Trained Keras Model]
-    J --> K[TFLite Conversion]
-    K --> L[Exported Artifacts\nmodel.tflite + scaler.json + labels.json]
-    L --> C
-    L --> D
-    L --> E
-```
+- **Real-time event detection** — Harsh Acceleration, Harsh Braking, Unstable Ride, Normal
+- **Three detection modes** — Rule-Based, AI Assist (TFLite 1D-CNN), Hybrid (default)
+- **Eco Score (0–100)** — diminishing-penalty model, updates live per event
+- **Fuel & financial impact** — estimates wasted fuel and monetary loss per trip
+- **Camera evidence** — automatically captures a timestamped rear-camera JPEG on confirmed events
+- **Event Map** — interactive route map with hotspot detection and event markers
+- **Trip history & analytics** — score trends, event breakdowns, aggregate stats
+- **Fully offline** — sensing, inference, scoring, and storage all happen on-device
 
 ---
 
-# Android Runtime Flow
-
-1. `SensorService` and `LocationService` collect motion and GPS data.
-2. Sensor values are normalized using exported **scaler parameters**.
-3. Sliding windows of `(50 × 8)` are passed to the **TensorFlow Lite model**.
-4. Predictions are mapped into human-readable classes using `LabelMapper`.
-5. Results update the **driving score, trip metrics, and UI analytics**.
-
----
-
-# Android App Components
-
-Key runtime modules include:
-
-### Core Services
-
-- `SensorService`
-- `LocationService`
-
-### ML Components
-
-- `ModelHelper`
-- `Scaler`
-- `LabelMapper`
-
-### UI
-
-- `LiveTripActivity`
-- `RideSummaryActivity`
-- `TripDetailsActivity`
-
-### Data
-
-- `TripHistory`
-- `DataLogger`
-
-Responsibilities include:
-
-- Sensor and GPS data capture
-- ML inference and event detection
-- Driving score computation
-- Ride analytics visualization
-
----
-
-# Machine Learning Pipeline
-
-The ML workflow is located inside:
+# Architecture
 
 ```
-ml-pipeline/
-```
-
-It produces Android-ready artifacts used by the mobile app.
-
-## Pipeline Goals
-
-- Clean raw sensor datasets
-- Generate sliding-window time sequences
-- Train a 1D CNN classifier
-- Convert the trained model to TensorFlow Lite
-- Export scaler and label mappings for Android
-
----
-
-# Model Input Specification
-
-The model expects a time-series tensor with shape:
-
-```
-(50 timesteps × 8 features)
-```
-
-Feature set:
-
-1. accel_x
-2. accel_y
-3. accel_z
-4. gyro_x
-5. gyro_y
-6. gyro_z
-7. accel_magnitude
-8. gyro_magnitude
-
-Each window represents a short segment of driving behavior captured from smartphone sensors.
-
----
-
-# ML Pipeline Scripts
-
-Located in:
-
-```
-ml-pipeline/scripts/
-```
-
-| Script | Purpose |
-|------|------|
-| clean_data.py | Cleans raw sensor data |
-| create_sequences.py | Generates sliding windows |
-| train_model.py | Trains the CNN model |
-| convert_to_tflite.py | Converts model to TensorFlow Lite |
-| export_scaler.py | Exports scaler parameters |
-| export_label.py | Exports class label mappings |
-| pipeline.py | Executes full pipeline |
-
----
-
-# Python Dependencies
-
-Defined in:
-
-```
-ml-pipeline/requirements.txt
-```
-
-Libraries:
-
-- numpy
-- pandas
-- scikit-learn
-- tensorflow
-- joblib
-
----
-
-# Repository Structure
-
-```
-TeleDrive/
-│
-├ android-app/              # Android application
-│  └ app/
-│
-├ ml-pipeline/
-│  ├ data/
-│  ├ models/
-│  │  ├ artifacts/
-│  │  ├ keras/
-│  │  └ tflite/
-│  ├ scripts/
-│  └ requirements.txt
-│
-├ docs/
-│  ├ diagrams/
-│  └ screenshots/
-│
-├ .gitignore
-├ LICENSE
-└ README.md
+Accelerometer + Gyroscope + GPS (50 Hz)
+        │
+        ▼
+SensorService (Android Foreground Service)
+        │
+        ▼
+TeleDriveProcessor
+  ├── Gravity removal (complementary filter, α = 0.95)
+  ├── Spike rejection (magnitude > 12g filtered)
+  ├── Median filter (window = 5)
+  └── Moving average (window = 8)
+        │
+        ▼
+FeatureVector (6 features per 1-second window)
+  ├── meanForwardAccel
+  ├── peakForwardAccel
+  ├── minForwardAccel
+  ├── stdAccel
+  ├── meanGyro
+  └── peakGyro
+        │
+        ▼
+AnalyzerProvider
+  ├── RuleBasedAnalyzer  — speed-adaptive thresholds
+  ├── MLAnalyzer         — TFLite 1D-CNN inference
+  └── Hybrid             — rule + ML combined (default)
+        │
+        ▼
+EventDetector
+  ├── Speed gate (< 15 km/h → NORMAL)
+  ├── Cooldown logic (1500ms)
+  ├── Sustained detection buffer (5-sample window)
+  └── Confirmed DrivingEvent
+        │
+        ├──▶ EcoScoreEngine → live score update
+        ├──▶ CameraControllerActivity → evidence JPEG
+        └──▶ LiveDataBus → UI update (LiveTripActivity)
+        │
+        ▼
+RideSessionManager → TripStorage (SharedPreferences)
 ```
 
 ---
 
-# Running the ML Pipeline
+# Model
 
-From the repository root:
+| Property | Value |
+|---|---|
+| Architecture | 1D Convolutional Neural Network |
+| Framework | TensorFlow Lite (on-device) |
+| Input | 6-feature vector per 1-second window |
+| Output classes | NORMAL, HARSH_ACCELERATION, HARSH_BRAKING, UNSTABLE_RIDE |
+| Training data source | 48 real two-wheeler ride sessions |
+| Inference latency | < 10ms on mid-range Android |
 
-```
-cd ml-pipeline
-python -m venv .venv
-```
+The hybrid mode combines CNN confidence scores with rule-based thresholds, using the CNN output to override rule decisions when confidence is high — reducing false positives from road bumps and traffic stops.
 
-Activate environment:
+---
 
-### Windows
+# Tech Stack
 
-```
-.\.venv\Scripts\Activate.ps1
-```
+| Layer | Technology |
+|---|---|
+| Language | Kotlin |
+| UI | Jetpack Compose |
+| ML Inference | TensorFlow Lite |
+| Camera | CameraX |
+| Location | FusedLocationProviderClient |
+| Storage | SharedPreferences |
+| Background processing | Android Foreground Service |
+| Build system | Gradle (Kotlin DSL) |
 
-### macOS/Linux
+---
 
-```
-source .venv/bin/activate
-```
-
-Install dependencies:
-
-```
-pip install -r requirements.txt
-```
-
-Run pipeline:
-
-```
-python scripts/pipeline.py
-```
-
-Expected outputs:
+# Module Overview
 
 ```
-ml-pipeline/models/keras/model.keras
-ml-pipeline/models/tflite/model.tflite
-ml-pipeline/models/artifacts/scaler.json
-ml-pipeline/models/artifacts/labels.json
+com/teledrive/app/
+├── analysis/
+│   ├── AnalyzerProvider.kt      # Switches between rule/ML/hybrid
+│   ├── DrivingAnalyzer.kt       # Interface
+│   ├── MLAnalyzer.kt            # TFLite CNN inference
+│   └── RuleBasedAnalyzer.kt     # Speed-adaptive rule engine
+├── camera/
+│   └── CameraControllerActivity.kt  # Evidence capture
+├── core/
+│   ├── EcoScoreEngine.kt        # Diminishing-penalty scoring
+│   ├── EventDetector.kt         # Sustained detection + cooldown
+│   ├── FuelEstimator.kt         # Mileage & fuel impact
+│   ├── LiveDataBus.kt           # Service → UI event bus
+│   ├── Models.kt                # Data classes & enums
+│   ├── RideSession.kt           # Session state management
+│   └── TeleDriveProcessor.kt   # Signal processing & feature extraction
+├── ml/
+│   ├── DataLogger.kt            # Training data collection
+│   └── MLModelRunner.kt        # TFLite runner
+├── services/
+│   ├── LocationService.kt       # GPS tracking
+│   └── SensorService.kt         # IMU data acquisition
+├── TripHistory/
+│   ├── TripStorage.kt           # Persistence layer
+│   └── TripSummary.kt           # Trip data model
+├── LiveTripActivity.kt          # Real-time monitoring UI
+├── MainActivity.kt              # Dashboard
+└── RideSummaryActivity.kt       # Post-trip summary
 ```
 
 ---
 
-# Android Integration
+# Getting Started
 
-Place the generated artifacts in the Android project:
+# Requirements
 
+- Android Studio Hedgehog or later
+- Android device running API 26+ (Android 8.0)
+- Permissions: Accelerometer, Gyroscope, GPS, Camera, Foreground Service
+
+# Build & Run
+
+```bash
+git clone https://github.com/sharansergio-creator/TeleDrive.git
+cd TeleDrive
 ```
-android-app/app/src/main/assets/
-```
 
-Required runtime files:
+Open in Android Studio → sync Gradle → run on a physical device.
 
-- model.tflite
-- scaler.json
-- labels.json
+> Physical device required. The emulator does not produce real sensor data. Detection accuracy depends on actual IMU hardware.
 
-Ensure preprocessing in Android matches **training-time scaling**.
+# First Use
+
+1. Grant all requested permissions on first launch
+2. Set up your vehicle profile (used for fuel estimation)
+3. Mount your phone securely on the bike (handlebar mount recommended)
+4. Tap **Start Trip** — the app runs as a Foreground Service in the background
+5. Ride normally — events are detected and scored in real-time
+6. Tap **Stop Trip** to view your summary, eco score, and event map
 
 ---
 
-## Application Screenshots
+# Detection Modes
 
-### Start Screen
-![Start Screen](docs/screenshots/start_screen.jpg)
+| Mode | How it works |
+|---|---|
+| **Rule-Based** | Speed-adaptive thresholds on peak/min acceleration and gyroscope magnitude |
+| **AI Assist** | TFLite 1D-CNN classifies each 1-second feature window |
+| **Hybrid** _(default)_ | CNN output gates rule-based decisions; reduces false positives from road noise |
 
-### Trip Score
-![Trip Score](docs/screenshots/trip_score.jpg)
+---
 
-### Driving Behaviour
-![Driving Analysis](docs/screenshots/driving_analysis.jpg)
+# Eco Score
 
-### Analytics Dashboard
-![Analytics](docs/screenshots/analytics.jpg)
+Score starts at 100 and decreases with each confirmed event:
 
-### Event Evidence Capture
-![Event Evidence](docs/screenshots/event_evidence.jpg)
+| Event | Penalty formula |
+|---|---|
+| Harsh Acceleration | `(severity/5) × 0.6 × 10` |
+| Harsh Braking | `(severity/5) × 1.0 × 10` |
+| Unstable Ride | `(severity/5) × 0.7 × 10` |
 
-# Future Improvements
+Braking is penalised more heavily than acceleration — consistent with fuel and wear research on two-wheelers.
 
-- Driver-specific personalization
-- Additional driving behavior detection
-- Model confidence scoring
-- Federated learning updates
-- Data augmentation for rare driving events
-- Cloud dashboard for fleet analytics
-- CI/CD automation for ML pipeline
+---
+
+# Limitations
+
+- Single-rider validation (48 sessions, one device, Mangalore road conditions)
+- No cross-device calibration — thresholds tuned for specific IMU hardware
+- Camera evidence requires rear-facing mount for useful context
+- GPS accuracy affects distance and fuel estimates on short trips
+
+---
+
+# Future Work
+
+- Cross-device IMU calibration
+- Cloud sync for fleet/family dashboards
+- OBD-II integration for direct fuel readings
+- iOS port
+- ADAS-style forward collision warning using camera feed
+
+---
+
+# Context
+
+Built as a final year BCA Data Science project at Srinivas University, Mangalore (2023–2027).  
+Submitted to address the gap in affordable, hardware-free telematics for individual two-wheeler riders in India.
 
 ---
 
 # Author
 
-Sharan S
-
-Interests:
-
-- Mobile AI Systems
-- Embedded Machine Learning
-- Intelligent Transportation Systems
+Sharan S — [github.com/sharansergio-creator](https://github.com/sharansergio-creator)
 
 ---
 
 # License
 
-This project is licensed under the **MIT License**.
-
-See the `LICENSE` file for details.
+MIT
