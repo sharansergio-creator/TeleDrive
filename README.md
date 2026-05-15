@@ -10,9 +10,18 @@ Built for gig economy riders (Swiggy, Zomato, Zepto) and anyone who wants to und
 
 # Demo
 
-> _Screen recording / screenshots coming soon_
+# Screenshots
 
----
+| | | |
+|:---:|:---:|:---:|
+| ![Launch](docs/screenshots/First_launch_screen.jpeg) | ![Profile](docs/screenshots/User%20profile%20setup.jpeg) | ![Start](docs/screenshots/start_screen.jpeg) |
+| **First Launch** | **Profile Setup** | **Start Trip** |
+| ![Live](docs/screenshots/driving_analysis.jpeg) | ![Score](docs/screenshots/ridesummary.jpeg) | ![Summary](docs/screenshots/ridesummary2.jpeg) |
+| **Live Monitoring** | **Ride Summary** | **Eco Score** |
+| ![History](docs/screenshots/TRIP%20HISTORY.jpg) | ![Evidence](docs/screenshots/event_evidence.jpeg) | ![Analytics](docs/screenshots/analytics.jpeg) |
+| **Trip History** | **Event Evidence** | **Analytics** |
+| ![Evidence Detail](docs/screenshots/Event%20Evidence%20Detail%20Screen.jpg) | ![Trip Score](docs/screenshots/trip_score.jpeg) | |
+| **Evidence Detail** | **Trip Score** | |
 
 # Key Numbers
 
