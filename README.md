@@ -8,8 +8,6 @@ Built for gig economy riders (Swiggy, Zomato, Zepto) and anyone who wants to und
 
 ---
 
-# Demo
-
 # Screenshots
 
 | | | |
@@ -32,10 +30,12 @@ Built for gig economy riders (Swiggy, Zomato, Zepto) and anyone who wants to und
 | Real ride sessions | 48 |
 | Offline accuracy (hold-out set) | 96.0% |
 | Macro F1-score | 0.92 |
-| Real-world validation accuracy | 98.76% |
+| Real-world validation (controlled trials) | 98.76% |
 | Sensor sampling rate | ~50 Hz |
 | Min Android version | 8.0 (API 26) |
 | Cloud dependency | None |
+
+*Controlled induced-event sessions; see research paper for full methodology.*
 
 ---
 
